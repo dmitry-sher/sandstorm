@@ -652,7 +652,7 @@ Template.requestAccess.helpers({
 
   identityPickerData: function () {
     const identities = SandstormDb.getUserIdentityIds(Meteor.user())
-          .map(id => globalDb.getIdentity(id));
+          .map(id => globalDb.getIdentity(id));  // TODO(now): busted
     const instance = Template.instance();
     function onPicked(identityId) {
       let grainId = instance._grain.grainId();

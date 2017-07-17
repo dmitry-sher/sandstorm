@@ -29,6 +29,7 @@ class IdentityImpl extends PersistentImpl {
   }
 
   getProfile() {
+    // TODO(now): need account id
     const identity = this.db.getIdentity(this.identityId);
 
     const profile = {
@@ -138,6 +139,7 @@ globalFrontendRefRegistry.register({
       requestedPermissions = Capnp.parse(Identity.PowerboxTag, value).permissions || [];
     }
 
+    // TODO(now): migrate to account IDs
     const resultForIdentity = function (identity) {
       return {
         _id: "frontendref-identity-" + identity._id,

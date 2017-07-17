@@ -1286,6 +1286,7 @@ class Proxy {
     }
 
     if (this.identityId) {
+      // TODO(now): migrate to not identity
       const identity = globalDb.getIdentity(this.identityId);
       if (!identity) {
         throw new Error("identity not found: " + this.identityId);

@@ -121,6 +121,7 @@ Meteor.publish("tokenInfo", function (token, isStandalone) {
       this.added("tokenInfo", token, { invalidToken: true });
     } else {
       if (apiToken.owner && apiToken.owner.user) {
+        // TODO(now): WTF is going on here. (getIdentity() is broken but what do we do instead?)
         let identity = globalDb.getIdentity(apiToken.owner.user.identityId);
         let metadata = apiToken.owner.user.denormalizedGrainMetadata;
         if (identity && metadata) {
@@ -356,7 +357,7 @@ Meteor.methods({
 
       const accountId = this.userId;
       const outerResult = { successes: [], failures: [] };
-      const fromEmail = globalDb.getReturnAddressWithDisplayName(identityId);
+      const fromEmail = globalDb.getReturnAddressWithDisplayName(accountId);
       const replyTo = globalDb.getPrimaryEmail(accountId, identityId);
       contacts.forEach(function (contact) {
         if (contact.isDefault && contact.profile.service === "email") {
@@ -472,10 +473,11 @@ Meteor.methods({
 
       const emailAddress = email.email;
 
+      // TODO(now): Identity used for profile, but also for intrinsic name. And then share link.
       const identity = globalDb.getIdentity(identityId);
       globalDb.addContact(grainOwner._id, identityId);
 
-      const fromEmail = globalDb.getReturnAddressWithDisplayName(identityId);
+      const fromEmail = globalDb.getReturnAddressWithDisplayName(this.userId);
       const replyTo = globalDb.getPrimaryEmail(Meteor.userId(), identityId);
 
       // TODO(soon): In the HTML version, we should display an identity card.

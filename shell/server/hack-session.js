@@ -372,18 +372,17 @@ HackSessionContextImpl = class HackSessionContextImpl extends SessionContextImpl
 
     const grain = Grains.findOne(this.grainId, { fields: { identityId: 1 } });
 
-    const identity = globalDb.getIdentity(grain.identityId);
+    const user = Meteor.users.findOne({_id: grain.userId});
 
-    const primaryEmail = _.findWhere(SandstormDb.getVerifiedEmails(identity), { primary: true });
-    const email = (primaryEmail && primaryEmail.email) || identity.unverifiedEmail;
+    const email = _.findWhere(SandstormDb.getUserEmails(user), { primary: true });
 
     const result = {};
     if (email) {
       result.address = email;
     }
 
-    if (identity.profile.name) {
-      result.name = identity.profile.name;
+    if (user.profile.name) {
+      result.name = user.profile.name;
     }
 
     return result;

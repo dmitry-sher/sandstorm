@@ -28,25 +28,28 @@ globalSubs = [
   Meteor.subscribe("userPackages"),
   Meteor.subscribe("devPackages"),
   Meteor.subscribe("credentials"),
-  Meteor.subscribe("accountIdentities"),
+  Meteor.subscribe("accountCredentials"),
 ];
 
 Tracker.autorun(function () {
   const me = Meteor.user();
   if (me) {
-    if (me.profile) {
-      Meteor.subscribe("identityProfile", me._id);
+    // TODO(now): Verify that we don't have to explicitly subscribe to the account's profile;
+    //   should already be subscribed implicitly.
+
+    if (me.type === "credential") {
+      Meteor.subscribe("credentialDetails", me._id);
     }
 
-    if (me.loginIdentities) {
-      me.loginIdentities.forEach(function (identity) {
-        Meteor.subscribe("identityProfile", identity.id);
+    if (me.loginCredentials) {
+      me.loginCredentials.forEach(function (credential) {
+        Meteor.subscribe("credentialDetails", credential.id);
       });
     }
 
-    if (me.nonloginIdentities) {
-      me.nonloginIdentities.forEach(function (identity) {
-        Meteor.subscribe("identityProfile", identity.id);
+    if (me.nonloginCredentials) {
+      me.nonloginCredentials.forEach(function (credential) {
+        Meteor.subscribe("credentialDetails", credential.id);
       });
     }
   }
@@ -64,7 +67,7 @@ logoutSandstorm = function () {
     }
   };
 
-  if (globalDb.userHasSamlLoginIdentity()) {
+  if (globalDb.userHasSamlLoginCredential()) {
     Meteor.call("generateSamlLogout", function (err, url) {
       Meteor.logout(function () {
         logoutHelper();

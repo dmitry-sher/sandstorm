@@ -92,7 +92,7 @@ Template.accountButtons.helpers({
     const currentIdentityId = getActiveIdentityId(grains);
     const user = Meteor.users.findOne({ _id: currentIdentityId });
     if (currentIdentityId && !user) {
-      // Need to wait for the `identityProfile` subscription to be ready.
+      // Need to wait for the `credentialDetails` subscription to be ready.
       return { loading: true };
     }
 
