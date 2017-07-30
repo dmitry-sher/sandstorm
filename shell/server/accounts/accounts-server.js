@@ -56,7 +56,7 @@ Accounts.onCreateUser(function (options, user) {
   }
 
   if (globalDb.getOrganizationDisallowGuests() &&
-      !globalDb.isIdentityInOrganization(user)) {
+      !globalDb.isCredentialInOrganization(user)) {
     throw new Meteor.Error(400, "User not in organization.");
   }
 
@@ -127,7 +127,7 @@ Accounts.onCreateUser(function (options, user) {
     serviceUserId = user.services.saml.id;
     user.profile.service = "saml";
   } else {
-    throw new Meteor.Error(400, "user does not have a recognized identity provider: " +
+    throw new Meteor.Error(400, "user does not have a recognized login provider: " +
                            JSON.stringify(user));
   }
 
@@ -160,7 +160,7 @@ Accounts.validateLoginAttempt(function (attempt) {
     db.updateUserQuota(user); // This is a no-op if settings aren't enabled
   } else {
     if (db.getOrganizationDisallowGuests() &&
-        !db.isIdentityInOrganization(user)) {
+        !db.isCredentialInOrganization(user)) {
       throw new Meteor.Error(403, "User not in organization.");
     }
   }

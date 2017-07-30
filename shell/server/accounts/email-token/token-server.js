@@ -167,7 +167,7 @@ Accounts.registerLoginHandler("email", function (options) {
 
 const makeTokenUrl = function (email, token, options) {
   if (options.linking) {
-    return options.rootUrl + "/_emailLinkIdentity/" + encodeURIComponent(email) + "/" +
+    return options.rootUrl + "/_emailLinkCredential/" + encodeURIComponent(email) + "/" +
       encodeURIComponent(token) + "/" + Meteor.userId() +
       "?allowLogin=" + options.linking.allowLogin;
   } else {

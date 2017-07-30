@@ -190,7 +190,7 @@ body>.popup.account>.frame-container {
       @extend %button-secondary;
       width: 100%;
     }
-    ul.dev-identities {
+    ul.dev-credentials {
       text-indent: 0;
       list-style-type: none;
       padding-left: 0;
@@ -467,7 +467,7 @@ body>.main-content>.account {
     font-weight: 400;
   }
 
-  .identities-editor {
+  .profile-editor {
     position: relative;
     white-space: nowrap;
     max-width: 660px;
@@ -492,28 +492,13 @@ body>.main-content>.account {
     padding: 5px;
   }
 
-  p.alert-identity-refactor {
-    color: red;
-    padding-left: 5px;
+  .linked-credentials {
+    position: relative;
+    white-space: nowrap;
+    max-width: 660px;
   }
 
-  .identities-and-editor {
-    @media #{$not-mobile-only} {
-      width: 660px;
-      flex-direction: row;
-      align-items: flex-start;
-    }
-
-    @media #{$mobile-only} {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    display: flex;
-    justify-content: flex-start;
-  }
-
-  .identities-tabs {
+  .credentials-tabs {
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -602,7 +587,7 @@ body>.main-content>.account {
 
       margin-bottom: 12px;
 
-      &.link-new-identity {
+      &.link-new-credential {
         @extend .icon-link;
         &::before {
           font-size: 24px;
@@ -1069,7 +1054,7 @@ div.billing {
   h1 {
     text-align: center;
   }
-  .identity-editor {
+  .profile-editor {
     position: static;
     margin: auto;
   }
@@ -1096,14 +1081,14 @@ div.billing {
   }
 }
 
-div.single-identity-editor {
-  max-width: 435px;
+div.single-profile-editor {
+  max-width: 660px;
   margin: auto;
 }
 
-div.identity-editor {
+div.profile-editor {
   @media #{$not-mobile-only} {
-    width: 435px;
+    width: 660px;
   }
 
   background-color: white;
@@ -1671,11 +1656,11 @@ body>.popup.billing-prompt>.frame-container>.frame, .first-time-billing-prompt {
   >div {
     margin-top: 10px;
   }
-  .login-identities-of-linked-accounts {
+  .login-credentials-of-linked-accounts {
     border: 1px solid gray;
     border-radius: 2px;
     padding: 10px;
-    ul.unlinkable-identities {
+    ul.unlinkable-credentials {
       list-style-type: none;
       padding: 0;
       li{

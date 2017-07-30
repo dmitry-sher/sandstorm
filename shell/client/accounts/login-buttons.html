@@ -78,15 +78,12 @@ licenses, included in the LICENSES directory.
     {{#linkTo route="account" role="menuitem"}}
       Account settings
     {{/linkTo}}
-    {{#if showIdentitySwitcher}}
-    <button class="switch-identity">
-      Switch identity {{#if identitySwitcherExpanded}}▴{{else}}▾{{/if}}
-    </button>
-    {{#if identitySwitcherExpanded}}
-    <div class="inline-identity-switcher">
-      {{> identityPicker identitySwitcherData}}
-    </div>
-    {{/if}}
+    {{#if isInApp}}
+      {{#if isIncognito}}
+        <button class="leave-incognito">Leave incognito</button>
+      {{else}}
+        <button class="go-incognito">Go incognito</button>
+      {{/if}}
     {{/if}}
     {{#if isAdmin}}
       {{#linkTo route="newAdminRoot" role="menuitem"}}Admin panel{{/linkTo}}
@@ -162,7 +159,7 @@ licenses, included in the LICENSES directory.
       {{> Template.dynamic template=../loginTemplate.name }}
     {{/with}}
   {{else}}
-    {{#linkTo route="newAdminIdentity" class="troubleshooting"}}
+    {{#linkTo route="newAdminLogin" class="troubleshooting"}}
       configure login
     {{/linkTo}}
   {{/each}}
@@ -190,7 +187,7 @@ licenses, included in the LICENSES directory.
   {{#if expanded}}
   <form class="dev login expanded">
     with a Dev account <button type="button" title="unexpand" class="unexpand"> ▴ </button>
-    <ul class="dev-identities">
+    <ul class="dev-credentials">
       <li><button type="button" class="login-dev-account" data-name="Alice Dev Admin"
                   data-is-admin="true">
           Alice (admin)

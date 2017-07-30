@@ -75,9 +75,9 @@ Template.accountButtonsPopup.events({
   },
 });
 
-function getActiveIdentityId(grains) {
+function isIncognito(grains) {
   const activeGrain = grains.getActive();
-  return activeGrain ? activeGrain.identityId() : Accounts.getCurrentIdentityId();
+  return activeGrain ? activeGrain.isIncognito() : false;
 }
 
 Template.accountButtons.helpers({
@@ -89,17 +89,9 @@ Template.accountButtons.helpers({
     }
 
     const grains = Template.currentData().grains;
-    const currentIdentityId = getActiveIdentityId(grains);
-    const user = Meteor.users.findOne({ _id: currentIdentityId });
-    if (currentIdentityId && !user) {
-      // Need to wait for the `credentialDetails` subscription to be ready.
-      return { loading: true };
-    }
+    if (isIncognito(grains)) return { displayName: "(incognito)", pictureUrl: "/incognito.svg", };
 
-    if (!user) return { displayName: "(incognito)", pictureUrl: "/incognito.svg", };
-
-    SandstormDb.fillInProfileDefaults(user);
-    SandstormDb.fillInPictureUrl(user);
+    const user = Meteor.user();
     return { displayName: user.profile.name, pictureUrl: user.profile.pictureUrl };
   },
 });
@@ -177,8 +169,6 @@ Template._loginButtonsLoggedOutDropdown.events({
 });
 
 Template._loginButtonsLoggedInDropdown.onCreated(function () {
-  this._identitySwitcherExpanded = new ReactiveVar(false);
-
   // Should be the same as the args to accountButtonsPopup
   this.autorun(() => {
     const data = Template.currentData();
@@ -191,51 +181,28 @@ Template._loginButtonsLoggedInDropdown.onCreated(function () {
 });
 
 Template._loginButtonsLoggedInDropdown.helpers({
-  showIdentitySwitcher() {
-    return SandstormDb.getUserIdentityIds(Meteor.user()).length > 1;
+  isInApp() {
+    return !!Template.currentData().grains.getActive();
   },
 
-  identitySwitcherExpanded() {
-    return Template.instance()._identitySwitcherExpanded.get();
-  },
-
-  identitySwitcherData() {
-    const grains = Template.currentData().grains;
-    const identities = SandstormDb.getUserIdentityIds(Meteor.user()).map(function (id) {
-      const identity = Meteor.users.findOne({ _id: id });
-      if (identity) {
-        SandstormDb.fillInProfileDefaults(identity);
-        SandstormDb.fillInIntrinsicName(identity);
-        SandstormDb.fillInPictureUrl(identity);
-        return identity;
-      }
-    });
-
-    function onPicked(identityId) {
-      const activeGrain = grains.getActive();
-      if (activeGrain) {
-        activeGrain.switchIdentity(identityId);
-      } else {
-        Accounts.setCurrentIdentityId(identityId);
-      }
-    }
-
-    return {
-      identities,
-      onPicked,
-      currentIdentityId: getActiveIdentityId(grains),
-    };
+  isIncognito() {
+    return isIncognito(Template.currentData().grains);
   },
 
   showAbout() {
     return !globalDb.isHideAboutEnabled();
   },
-
 });
 
 Template._loginButtonsLoggedInDropdown.events({
-  "click button.switch-identity"(event, instance) {
-    instance._identitySwitcherExpanded.set(!instance._identitySwitcherExpanded.get());
+  "click button.go-incognito"(event, instance) {
+    const active = instance.data.grains.getActive();
+    if (active) active.revealIdentity(false);
+  },
+
+  "click button.leave-incognito"(event, instance) {
+    const active = instance.data.grains.getActive();
+    if (active) active.revealIdentity(true);
   },
 });
 
@@ -305,7 +272,7 @@ Template.loginButtonsList.onCreated(function () {
 Template.oauthLoginButton.events({
   "click button.login.oneclick"(event, instance) {
     if (instance.data.linkingNewCredential) {
-      sessionStorage.setItem("linkingIdentityLoginToken", Accounts._storedLoginToken());
+      sessionStorage.setItem("linkingCredentialLoginToken", Accounts._storedLoginToken());
     }
 
     loginButtonsSession.resetMessages();
@@ -346,7 +313,7 @@ Template.emailAuthenticationForm.events({
     const email = loginButtonsSession.get("inSignupFlow");
     if (email) {
       if (instance.data.linkingNewCredential) {
-        Meteor.call("linkEmailIdentityToAccount", email, form.token.value, true, (err, result) => {
+        Meteor.call("linkEmailCredentialToAccount", email, form.token.value, true, (err, result) => {
           if (err) {
             loginButtonsSession.errorMessage(err.reason || "Unknown error");
           } else {
@@ -390,7 +357,7 @@ Template.ldapLoginForm.events({
   "submit form"(event, instance) {
     event.preventDefault();
     if (instance.data.linkingNewCredential) {
-      sessionStorage.setItem("linkingIdentityLoginToken", Accounts._storedLoginToken());
+      sessionStorage.setItem("linkingCredentialLoginToken", Accounts._storedLoginToken());
     }
 
     loginButtonsSession.resetMessages();
@@ -430,7 +397,7 @@ function closeLoginOverlays() {
 
 function loginDevHelper(name, isAdmin, linkingNewCredential) {
   if (linkingNewCredential) {
-    sessionStorage.setItem("linkingIdentityLoginToken", Accounts._storedLoginToken());
+    sessionStorage.setItem("linkingCredentialLoginToken", Accounts._storedLoginToken());
   }
 
   loginDevAccount(name, isAdmin, (err) => {
@@ -476,7 +443,7 @@ Template.samlLoginForm.helpers({
 Template.samlLoginForm.events({
   "click button"(event, instance) {
     if (instance.data.linkingNewCredential) {
-      sessionStorage.setItem("linkingIdentityLoginToken", Accounts._storedLoginToken());
+      sessionStorage.setItem("linkingCredentialLoginToken", Accounts._storedLoginToken());
     }
 
     loginButtonsSession.resetMessages();
