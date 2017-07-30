@@ -34,8 +34,8 @@ const linkIdentityToAccountInternal = function (db, backend, identityId, account
     throw new Meteor.Error(400, "Cannot link an identity to another identity.");
   }
 
-  if (!!_.findWhere(accountUser.loginIdentities, { id: identityId }) ||
-      !!_.findWhere(accountUser.nonloginIdentities, { id: identityId })) {
+  if (!!_.findWhere(accountUser.loginCredentials, { id: identityId }) ||
+      !!_.findWhere(accountUser.nonloginCredentials, { id: identityId })) {
     throw new Meteor.Error("alreadyLinked",
       "Cannot link an identity that's alread linked to this account.");
   }
@@ -51,16 +51,16 @@ const linkIdentityToAccountInternal = function (db, backend, identityId, account
   }
 
   db.deleteUnusedAccount(backend, identityUser._id);
-  if (Meteor.users.findOne({ "loginIdentities.id": identityUser._id })) {
+  if (Meteor.users.findOne({ "loginCredentials.id": identityUser._id })) {
     throw new Meteor.Error(403,
                            "Cannot link an identity that can already log into another account");
   }
 
-  const alreadyLinked = !!Meteor.users.findOne({ "nonloginIdentities.id": identityUser._id });
+  const alreadyLinked = !!Meteor.users.findOne({ "nonloginCredentials.id": identityUser._id });
 
   const pushModifier = (alreadyLinked || !allowLogin)
-        ? { nonloginIdentities: { id: identityUser._id } }
-        : { loginIdentities: { id: identityUser._id } };
+        ? { nonloginCredentials: { id: identityUser._id } }
+        : { loginCredentials: { id: identityUser._id } };
 
   let modifier;
   if (accountUser.expires) {
@@ -85,8 +85,8 @@ const linkIdentityToAccountInternal = function (db, backend, identityId, account
 
   // Make sure not to add the same identity twice.
   Meteor.users.update({ _id: accountUser._id,
-                        "nonloginIdentities.id": { $ne: identityUser._id },
-                        "loginIdentities.id": { $ne: identityUser._id }, },
+                        "nonloginCredentials.id": { $ne: identityUser._id },
+                        "loginCredentials.id": { $ne: identityUser._id }, },
                       modifier);
 
   if (accountUser.expires) {
@@ -98,10 +98,10 @@ const linkIdentityToAccountInternal = function (db, backend, identityId, account
     // Mark the demo identity as nonlogin. It'd be nicer if the identity started out as nonlogin,
     // but to get that to work we would need to adjust the account creation and first login logic.
     Meteor.users.update({ _id: accountUser._id,
-                          "loginIdentities.id": demoIdentityId,
-                          "nonloginIdentities.id": { $not: { $eq: demoIdentityId } }, },
-                        { $pull: { loginIdentities: { id: demoIdentityId } },
-                          $push: { nonloginIdentities: { id: demoIdentityId } }, });
+                          "loginCredentials.id": demoIdentityId,
+                          "nonloginCredentials.id": { $not: { $eq: demoIdentityId } }, },
+                        { $pull: { loginCredentials: { id: demoIdentityId } },
+                          $push: { nonloginCredentials: { id: demoIdentityId } }, });
 
   }
 };
@@ -109,7 +109,7 @@ const linkIdentityToAccountInternal = function (db, backend, identityId, account
 Meteor.methods({
   loginWithIdentity: function (accountUserId) {
     // Logs into the account with ID `accountUserId`. Throws an exception if the current user is
-    // not an identity user listed in the account's `loginIdentities` field. This method is not
+    // not an identity user listed in the account's `loginCredentials` field. This method is not
     // intended to be called directly; client-side code should only invoke it through
     // `Meteor.loginWithIdentity()`, which additionally maintains the standard Meteor client-side
     // login state.
@@ -126,7 +126,7 @@ Meteor.methods({
       throw new Meteor.Error(404, "No such user found: " + accountUserId);
     }
 
-    const linkedIdentity = _.findWhere(accountUser.loginIdentities, { id: identityUser._id });
+    const linkedIdentity = _.findWhere(accountUser.loginCredentials, { id: identityUser._id });
 
     if (!linkedIdentity) {
       throw new Meteor.Error(403, "Current identity is not a login identity for account "
@@ -147,8 +147,8 @@ Meteor.methods({
 
     if (Meteor.users.findOne({
       $or: [
-        { "loginIdentities.id": user._id },
-        { "nonloginIdentities.id": user._id },
+        { "loginCredentials.id": user._id },
+        { "nonloginCredentials.id": user._id },
       ],
     })) {
       throw new Meteor.Error(403, "Cannot create an account for an identity that's already " +
@@ -156,8 +156,8 @@ Meteor.methods({
     }
 
     const newUser = {
-      loginIdentities: [{ id: user._id }],
-      nonloginIdentities: [],
+      loginCredentials: [{ id: user._id }],
+      nonloginCredentials: [],
     };
     if (user.services.dev) {
       newUser.signupKey = "devAccounts";
@@ -220,8 +220,8 @@ Meteor.methods({
       _id: accountUserId,
     }, {
       $pull: {
-        nonloginIdentities: { id: identityId },
-        loginIdentities: { id: identityId },
+        nonloginCredentials: { id: identityId },
+        loginCredentials: { id: identityId },
       },
     });
   },
@@ -241,24 +241,24 @@ Meteor.methods({
 
     if (allowLogin) {
       Meteor.users.update({ _id: this.userId,
-                            "nonloginIdentities.id": identityId,
-                            "loginIdentities.id": { $not: { $eq: identityId } }, },
-                          { $pull: { nonloginIdentities: { id: identityId } },
-                            $push: { loginIdentities: { id: identityId } }, });
+                            "nonloginCredentials.id": identityId,
+                            "loginCredentials.id": { $not: { $eq: identityId } }, },
+                          { $pull: { nonloginCredentials: { id: identityId } },
+                            $push: { loginCredentials: { id: identityId } }, });
     } else {
       Meteor.users.update({ _id: this.userId,
-                            "loginIdentities.id": identityId,
-                            "nonloginIdentities.id": { $not: { $eq: identityId } }, },
-                          { $pull: { loginIdentities: { id: identityId } },
-                            $push: { nonloginIdentities: { id: identityId } }, });
+                            "loginCredentials.id": identityId,
+                            "nonloginCredentials.id": { $not: { $eq: identityId } }, },
+                          { $pull: { loginCredentials: { id: identityId } },
+                            $push: { nonloginCredentials: { id: identityId } }, });
     }
   },
 
   logoutIdentitiesOfCurrentAccount: function () {
     // Logs out all identities that are allowed to log in to the current account.
     const user = Meteor.user();
-    if (user && user.loginIdentities) {
-      user.loginIdentities.forEach(function (identity) {
+    if (user && user.loginCredentials) {
+      user.loginCredentials.forEach(function (identity) {
         Meteor.users.update({ _id: identity.id }, { $set: { "services.resume.loginTokens": [] } });
       });
     }
@@ -281,12 +281,12 @@ Meteor.publish("accountsOfIdentity", function (identityId) {
   if (!SandstormDb.ensureSubscriberHasIdentity(this, identityId)) return;
 
   // We maintain a map from identity IDs to live query handles that track profile changes.
-  const loginIdentities = {};
+  const loginCredentials = {};
 
   const _this = this;
   function addIdentitiesOfAccount(account) {
-    account.loginIdentities.forEach(function (identity) {
-      if (!(identity.id in loginIdentities)) {
+    account.loginCredentials.forEach(function (identity) {
+      if (!(identity.id in loginCredentials)) {
         const user = Meteor.users.findOne({ _id: identity.id });
         if (user) {
           SandstormDb.fillInProfileDefaults(user);
@@ -295,13 +295,13 @@ Meteor.publish("accountsOfIdentity", function (identityId) {
           const filteredUser = _.pick(user, "_id", "profile", "loginId");
           filteredUser.loginAccountId = account._id;
           filteredUser.sourceIdentityId = identityId;
-          _this.added("loginIdentitiesOfLinkedAccounts", user._id, filteredUser);
+          _this.added("loginCredentialsOfLinkedAccounts", user._id, filteredUser);
         }
 
-        loginIdentities[identity.id] =
+        loginCredentials[identity.id] =
           Meteor.users.find({ _id: identity.id }, { fields: { profile: 1 } }).observeChanges({
             changed: function (id, fields) {
-              _this.changed("loginIdentitiesOfLinkedAccounts", id, fields);
+              _this.changed("loginCredentialsOfLinkedAccounts", id, fields);
             },
           });
       }
@@ -310,8 +310,8 @@ Meteor.publish("accountsOfIdentity", function (identityId) {
 
   const cursor = Meteor.users.find({
     $or: [
-      { "loginIdentities.id": identityId },
-      { "nonloginIdentities.id": identityId },
+      { "loginCredentials.id": identityId },
+      { "nonloginCredentials.id": identityId },
     ],
   });
 
@@ -325,11 +325,11 @@ Meteor.publish("accountsOfIdentity", function (identityId) {
     },
 
     removed: function (account) {
-      account.loginIdentities.forEach(function (identity) {
-        if (identity.id in loginIdentities) {
-          _this.removed("loginIdentitiesOfLinkedAccounts", identity.id);
-          loginIdentities[identity.id].stop();
-          delete loginIdentities[identity.id];
+      account.loginCredentials.forEach(function (identity) {
+        if (identity.id in loginCredentials) {
+          _this.removed("loginCredentialsOfLinkedAccounts", identity.id);
+          loginCredentials[identity.id].stop();
+          delete loginCredentials[identity.id];
         }
       });
     },
@@ -338,9 +338,9 @@ Meteor.publish("accountsOfIdentity", function (identityId) {
 
   this.onStop(function () {
     handle.stop();
-    Object.keys(loginIdentities).forEach(function (identityId) {
-      loginIdentities[identityId].stop();
-      delete loginIdentities[identityId];
+    Object.keys(loginCredentials).forEach(function (identityId) {
+      loginCredentials[identityId].stop();
+      delete loginCredentials[identityId];
     });
   });
 });

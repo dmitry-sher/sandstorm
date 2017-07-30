@@ -185,7 +185,7 @@ Meteor.methods({
 
     const _saml = new SAML(service);
     let identity;
-    Meteor.user().loginIdentities.forEach((_identity) => {
+    Meteor.user().loginCredentials.forEach((_identity) => {
       const currIdentity = Meteor.users.findOne({ _id: _identity.id, });
       if (currIdentity.services.saml) {
         identity = currIdentity;
@@ -230,7 +230,7 @@ Meteor.methods({
           return new Meteor.Error(400, "No identity found matching SAML nameID.");
         }
 
-        const user = db.collections.users.findOne({ "loginIdentities.id": identity._id, },
+        const user = db.collections.users.findOne({ "loginCredentials.id": identity._id, },
           { fields: { _id: 1, }, });
         if (!user) {
           return new Meteor.Error(403, "No user found for expected SAML identity.");

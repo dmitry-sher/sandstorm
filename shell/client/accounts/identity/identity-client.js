@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const LoginIdentitiesOfLinkedAccounts = new Mongo.Collection("loginIdentitiesOfLinkedAccounts");
+const LoginIdentitiesOfLinkedAccounts = new Mongo.Collection("loginCredentialsOfLinkedAccounts");
 // Pseudocollection populated by the `accountsOfIdentity(sourceIdentityId)` subscription. Contains
 // information about all login identities for all accounts that have the "source identity" linked.
 //   _id: Identity ID of the login identity;
@@ -257,7 +257,7 @@ Template.identityLoginInterstitial.events({
 
 Template.identityManagementButtons.events({
   "click button.unlink-identity"(evt, instance) {
-    if (instance.data.isLogin && Meteor.user().loginIdentities.length <= 1) {
+    if (instance.data.isLogin && Meteor.user().loginCredentials.length <= 1) {
       window.alert("You are not allowed to unlink your only login identity.");
     } else if (window.confirm("Are you sure you want to unlink this identity? " +
                               "You will lose access to grains that were shared to this identity.")) {
@@ -286,7 +286,7 @@ Template.identityManagementButtons.helpers({
   disableToggleLogin() {
     const instance = Template.instance();
     if (instance.data.isLogin) {
-      if (Meteor.user().loginIdentities.length <= 1) {
+      if (Meteor.user().loginCredentials.length <= 1) {
         return { why: "You must have at least one login identity." };
       }
     } else {
@@ -306,7 +306,7 @@ Template.identityManagementButtons.helpers({
   },
 });
 
-Template.loginIdentitiesOfLinkedAccounts.onCreated(function () {
+Template.loginCredentialsOfLinkedAccounts.onCreated(function () {
   if (this.data._id) {
     this.subscribe("accountsOfIdentity", this.data._id);
   }
@@ -314,7 +314,7 @@ Template.loginIdentitiesOfLinkedAccounts.onCreated(function () {
   this._showOtherAccounts = new ReactiveVar(false);
 });
 
-Template.loginIdentitiesOfLinkedAccounts.helpers({
+Template.loginCredentialsOfLinkedAccounts.helpers({
   showOtherAccounts() {
     return Template.instance()._showOtherAccounts.get();
   },
@@ -333,7 +333,7 @@ Template.loginIdentitiesOfLinkedAccounts.helpers({
   },
 });
 
-Template.loginIdentitiesOfLinkedAccounts.events({
+Template.loginCredentialsOfLinkedAccounts.events({
   "click button.show-other-accounts"(evt, instance) {
     instance._showOtherAccounts.set(true);
   },

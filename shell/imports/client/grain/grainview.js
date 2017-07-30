@@ -83,8 +83,8 @@ class GrainView {
       if (disallowGuests) {
         // If guests are disallowed, we can skip the interstitial if there's only 1 identitiy.
         const user = Meteor.user();
-        if (user && user.loginIdentities.length === 1 && user.nonloginIdentities.length === 0) {
-          this.revealIdentity(user.loginIdentities[0].id);
+        if (user && user.loginCredentials.length === 1 && user.nonloginCredentials.length === 0) {
+          this.revealIdentity(user.loginCredentials[0].id);
         }
       }
     } else {

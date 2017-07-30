@@ -181,8 +181,8 @@ logActivity = function (grainId, identityIdOrAnonymous, event) {
     notify.forEach(targetId => {
       // Notify all accounts connected with this identity.
       Meteor.users.find({ $or: [
-        { "loginIdentities.id": targetId },
-        { "nonloginIdentities.id": targetId },
+        { "loginCredentials.id": targetId },
+        { "nonloginCredentials.id": targetId },
       ], }).forEach((account) => {
         // We need to know the ID of the inserted/updated document so we can embed it in the
         // desktop notification to bind them.

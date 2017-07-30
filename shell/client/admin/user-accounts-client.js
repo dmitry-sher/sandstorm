@@ -174,7 +174,7 @@ Template.newAdminUsers.onCreated(function () {
     if (!this.usersSub.ready()) return [];
 
     const accounts = Meteor.users.find({
-      loginIdentities: { $exists: 1 },
+      loginCredentials: { $exists: 1 },
     });
 
     const users = accounts.map((account) => {

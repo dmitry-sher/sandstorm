@@ -158,7 +158,7 @@
     </div>
 
     <div class="admin-user-identity-body" role="rowgroup">
-      {{#each identity in (loginIdentities account) }}
+      {{#each identity in (loginCredentials account) }}
         {{#if identity}}
           {{> newAdminUserDetailsIdentityTableRow
                 identity=identity
@@ -169,7 +169,7 @@
           {{> newAdminUserDetailsIdentityMIATableRow "" }}
         {{/if}}
       {{/each}}
-      {{#each identity in (nonloginIdentities account) }}
+      {{#each identity in (nonloginCredentials account) }}
         {{#if identity}}
           {{> newAdminUserDetailsIdentityTableRow
                 identity=identity

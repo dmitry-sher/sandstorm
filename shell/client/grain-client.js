@@ -1827,7 +1827,7 @@ Router.map(function () {
 
     onBeforeAction: function () {
       // Don't do anything for non-account users.
-      if (Meteor.userId() && !Meteor.user().loginIdentities) return;
+      if (Meteor.userId() && !Meteor.user().loginCredentials) return;
 
       // Only run the hook once.
       if (this.state.get("beforeActionHookRan")) return this.next();
@@ -1903,7 +1903,7 @@ Router.map(function () {
 
     onBeforeAction: function () {
       // Don't do anything for non-account users.
-      if (Meteor.userId() && !Meteor.user().loginIdentities) return;
+      if (Meteor.userId() && !Meteor.user().loginCredentials) return;
 
       // Only run the hook once.
       if (this.state.get("beforeActionHookRan")) return this.next();
@@ -2095,7 +2095,7 @@ Meteor.startup(function () {
 
       onBeforeAction: function () {
         // Don't do anything for non-account users.
-        if (Meteor.userId() && !Meteor.user().loginIdentities) return;
+        if (Meteor.userId() && !Meteor.user().loginCredentials) return;
 
         // Only run the hook once.
         if (this.state.get("beforeActionHookRan")) return this.next();
@@ -2137,7 +2137,7 @@ Meteor.startup(function () {
                 const grainToOpen = globalGrains.addNewGrainView(grainId, path, tokenInfo,
                                                                  mainContentElement);
                 if (Meteor.user()) {
-                  grainToOpen.revealIdentity(Meteor.user().loginIdentities[0]);
+                  grainToOpen.revealIdentity(Meteor.user().loginCredentials[0]);
                 }
 
                 grainToOpen.openSession();

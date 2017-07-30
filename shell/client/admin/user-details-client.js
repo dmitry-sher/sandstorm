@@ -52,14 +52,14 @@ const lookupIdentity = (identityRef) => {
 };
 
 Template.newAdminUserDetailsIdentityTable.helpers({
-  loginIdentities(account) {
-    const identityIds = account.loginIdentities || [];
+  loginCredentials(account) {
+    const identityIds = account.loginCredentials || [];
     const identities = identityIds.map(lookupIdentity);
     return identities;
   },
 
-  nonloginIdentities(account) {
-    const identityIds = account.nonloginIdentities || [];
+  nonloginCredentials(account) {
+    const identityIds = account.nonloginCredentials || [];
     const identities = identityIds.map(lookupIdentity);
     return identities;
   },

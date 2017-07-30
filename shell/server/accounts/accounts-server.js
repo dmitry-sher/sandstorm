@@ -26,7 +26,7 @@ const ValidHandle = Match.Where(function (handle) {
 });
 
 Accounts.onCreateUser(function (options, user) {
-  if (user.loginIdentities) {
+  if (user.loginCredentials) {
     // it's an account
     check(user, { _id: String,
                   createdAt: Date,
@@ -37,8 +37,8 @@ Accounts.onCreateUser(function (options, user) {
                   signupEmail: Match.Optional(String),
                   expires: Match.Optional(Date),
                   appDemoId: Match.Optional(String),
-                  loginIdentities: [{ id: String }],
-                  nonloginIdentities: [{ id: String }], });
+                  loginCredentials: [{ id: String }],
+                  nonloginCredentials: [{ id: String }], });
 
     if (globalDb.isReferralEnabled()) {
       user.experiments = user.experiments || {};
@@ -150,7 +150,7 @@ Accounts.validateLoginAttempt(function (attempt) {
       "of this server if you believe this to be in error.");
   }
 
-  if (user.loginIdentities) {
+  if (user.loginCredentials) {
     // it's an account
     if (db.getOrganizationDisallowGuests() &&
         !db.isUserInOrganization(user)) {

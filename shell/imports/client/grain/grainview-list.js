@@ -85,8 +85,8 @@ GrainViewList = class GrainViewList {
         if (isStandalone()) {
           const activeGrain = globalGrains.getActive();
           if (activeGrain) {
-            activeGrain.reset(Meteor.user() && Meteor.user().loginIdentities &&
-              Meteor.user().loginIdentities[0]);
+            activeGrain.reset(Meteor.user() && Meteor.user().loginCredentials &&
+              Meteor.user().loginCredentials[0]);
             activeGrain.openSession();
           }
         } else {

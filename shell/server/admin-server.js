@@ -155,7 +155,7 @@ Meteor.methods({
         Meteor.users.update({ _id: identity._id }, { $set: { "services.resume.loginTokens": [] } });
       }
 
-      Meteor.users.update({ "loginIdentities.id": identity._id },
+      Meteor.users.update({ "loginCredentials.id": identity._id },
                           { $set: { "services.resume.loginTokens": [] } });
     });
   },
@@ -318,7 +318,7 @@ Meteor.methods({
       throw new Meteor.Error(403, "Must be logged in to sign up as admin.");
     }
 
-    if (!Meteor.user().loginIdentities) {
+    if (!Meteor.user().loginCredentials) {
       throw new Meteor.Error(403, "Must be logged into an account to sign up as admin.");
     }
 

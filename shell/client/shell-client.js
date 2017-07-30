@@ -805,7 +805,7 @@ Router.map(function () {
     path: "/",
     subscriptions: function () {
       this.subscribe("hasUsers").wait();
-      if (!Meteor.loggingIn() && Meteor.user() && Meteor.user().loginIdentities) {
+      if (!Meteor.loggingIn() && Meteor.user() && Meteor.user().loginCredentials) {
         this.subscribe("grainsMenu").wait();
       }
     },
@@ -816,7 +816,7 @@ Router.map(function () {
       }
       // If the user is logged-in, and can create new grains, and
       // has no grains yet, then send them to "new".
-      if (this.ready() && Meteor.userId() && !Meteor.loggingIn() && Meteor.user().loginIdentities) {
+      if (this.ready() && Meteor.userId() && !Meteor.loggingIn() && Meteor.user().loginCredentials) {
         if (globalDb.currentUserGrains().count() === 0 &&
             globalDb.currentUserApiTokens().count() === 0) {
           Router.go("apps", {}, { replaceState: true });

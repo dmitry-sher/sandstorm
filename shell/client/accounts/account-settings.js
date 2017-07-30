@@ -52,8 +52,8 @@ Template.sandstormAccountSettings.onCreated(function () {
   this.autorun(() => {
     // Reset the selected identity ID when appropriate.
     const user = Meteor.user();
-    if (user && user.loginIdentities) {
-      const identities = user.loginIdentities.concat(user.nonloginIdentities);
+    if (user && user.loginCredentials) {
+      const identities = user.loginCredentials.concat(user.nonloginCredentials);
       const currentlySelected = this._selectedIdentityId.get();
       if (!currentlySelected || !_.findWhere(identities, { id: currentlySelected })) {
         if (identities.length > 0) {
@@ -95,7 +95,7 @@ Template.sandstormAccountSettings.helpers({
   },
 
   isAccountUser: function () {
-    return Meteor.user() && !!Meteor.user().loginIdentities;
+    return Meteor.user() && !!Meteor.user().loginCredentials;
   },
 
   isIdentitySelected: function (id) {
@@ -243,7 +243,7 @@ Template._accountProfileEditor.helpers({
       const identityId = this.identity._id;
       return {
         _id: identityId,
-        isLogin: user.loginIdentities && !!_.findWhere(user.loginIdentities, { id: identityId }),
+        isLogin: user.loginCredentials && !!_.findWhere(user.loginCredentials, { id: identityId }),
         isDemo: this.identity.profile.service === "demo",
         setActionCompleted: Template.instance()._setActionCompleted,
       };

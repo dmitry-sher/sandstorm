@@ -361,8 +361,8 @@ const splitAccountUsersAndIdentityUsers = function (db, backend) {
                              "isAdmin", "signupKey", "signupNote", "signupEmail",
                              "plan", "storageUsage", "isAppDemoUser", "appDemoId",
                              "payments", "dailySentMailCount", "hasCompletedSignup");
-    accountUser.loginIdentities = [_.pick(identity, "id")];
-    accountUser.nonloginIdentities = [];
+    accountUser.loginCredentials = [_.pick(identity, "id")];
+    accountUser.nonloginCredentials = [];
     if (user.services && user.services.resume) {
       accountUser.services = { resume: user.services.resume };
     }
@@ -458,7 +458,7 @@ const initServerTitleAndReturnAddress = function (db, backend) {
 const sendReferralNotifications = function (db, backend) {
   if (db.isReferralEnabled()) {
     db.collections.users.find({
-      loginIdentities: { $exists: true },
+      loginCredentials: { $exists: true },
       expires: { $exists: false },
     }, { fields: { _id: 1 } }).forEach(function (user) {
       db.sendReferralProgramNotification(user._id);
@@ -804,8 +804,8 @@ function notifyIdentityChanges(db, backend) {
     names[user._id] = user.profile.name;
   });
 
-  Meteor.users.find({ loginIdentities: { $exists: true } },
-                    { fields: { loginIdentities: 1, nonloginIdentities: 1 } }).forEach(user => {
+  Meteor.users.find({ loginCredentials: { $exists: true } },
+                    { fields: { loginCredentials: 1, nonloginCredentials: 1 } }).forEach(user => {
     let previousName = null;
     let needsNotification = false;
     SandstormDb.getUserIdentityIds(user).forEach(identityId => {
@@ -876,7 +876,7 @@ function onePersonaPerAccount(db, backend) {
   console.log("see: https://sandstorm.io/news/2017-05-08-refactoring-identities");
 
   console.log("tagging accounts...");
-  Meteor.users.update({ type: { $exists: false }, loginIdentities: { $exists: true } },
+  Meteor.users.update({ type: { $exists: false }, loginCredentials: { $exists: true } },
                       { $set: { type: "account" } });
 
   console.log("tagging credentials...");
@@ -899,7 +899,7 @@ function onePersonaPerAccount(db, backend) {
         list.push(userInfo);
       }
     }
-    user.loginIdentities.forEach(handleIdentity);
+    user.loginCredentials.forEach(handleIdentity);
     user.nonLoginIdentities.forEach(handleIdentity);
   });
 
@@ -943,7 +943,7 @@ function onePersonaPerAccount(db, backend) {
       user => {
     // Fetch all the user's login identities.
     const identities = Meteor.users.find(
-        { _id: { $in: user.loginIdentities.map(identity => identity.id) },
+        { _id: { $in: user.loginCredentials.map(identity => identity.id) },
           profile: { $exists: true } }).fetch();
 
     // Fill out the profiles for each identity.
@@ -1093,12 +1093,12 @@ function onePersonaPerAccountPostCleanup(db, backend) {
   // Drop obsolete indices.
   db.collections.apiTokens._dropIndex({ "owner.user.identityId": 1 });
   db.collections.activitySubscriptions._dropIndex({ "identityId": 1 });
-  Meteor.users._dropIndex({ "loginIdentities.id": 1 });
-  Meteor.users._dropIndex({ "nonloginIdentities.id": 1 });
+  Meteor.users._dropIndex({ "loginCredentials.id": 1 });
+  Meteor.users._dropIndex({ "nonloginCredentials.id": 1 });
 
   Meteor.users.update({ type: "account" },
-      { $rename: { loginIdentities: "loginCredentials",
-                   nonloginIdentities: "nonloginCredentials" },
+      { $rename: { loginCredentials: "loginCredentials",
+                   nonloginCredentials: "nonloginCredentials" },
         $unset: { referredIdentityIds: 1 } },
       { multi: true });
 
