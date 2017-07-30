@@ -105,8 +105,8 @@ Template.accountButtons.helpers({
 });
 
 function getServices() {
-  return _.keys(Accounts.identityServices).map(function (key) {
-    return _.extend(Accounts.identityServices[key], { name: key });
+  return _.keys(Accounts.loginServices).map(function (key) {
+    return _.extend(Accounts.loginServices[key], { name: key });
   }).filter(function (service) {
     return service.isEnabled() && !!service.loginTemplate;
   }).sort(function (s1, s2) { return s1.loginTemplate.priority - s2.loginTemplate.priority; });
@@ -239,12 +239,12 @@ Template._loginButtonsLoggedInDropdown.events({
   },
 });
 
-const sendEmail = function (email, linkingNewIdentity) {
+const sendEmail = function (email, linkingNewCredential) {
   loginButtonsSession.infoMessage("Sending email...");
   const loc = window.location;
   const resumePath = loc.pathname + loc.search + loc.hash;
   const options = { resumePath };
-  if (linkingNewIdentity) {
+  if (linkingNewCredential) {
     options.linking = { allowLogin: true };
   }
 
@@ -296,15 +296,15 @@ Template.loginButtonsDialog.helpers({
 
 Template.loginButtonsList.onCreated(function () {
   if (isDemoUser()) {
-    this._linkingNewIdentity = { doneCallback() {} };
-  } else if (Template.parentData(1).linkingNewIdentity) {
-    this._linkingNewIdentity = Template.parentData(1).linkingNewIdentity;
+    this._linkingNewCredential = { doneCallback() {} };
+  } else if (Template.parentData(1).linkingNewCredential) {
+    this._linkingNewCredential = Template.parentData(1).linkingNewCredential;
   }
 });
 
 Template.oauthLoginButton.events({
   "click button.login.oneclick"(event, instance) {
-    if (instance.data.linkingNewIdentity) {
+    if (instance.data.linkingNewCredential) {
       sessionStorage.setItem("linkingIdentityLoginToken", Accounts._storedLoginToken());
     }
 
@@ -330,8 +330,8 @@ Template.loginButtonsList.helpers({
     return !hiddenByConfFile && !hiddenByDbSetting;
   },
 
-  linkingNewIdentity() {
-    return Template.instance()._linkingNewIdentity;
+  linkingNewCredential() {
+    return Template.instance()._linkingNewCredential;
   },
 
   showAbout() {
@@ -345,21 +345,21 @@ Template.emailAuthenticationForm.events({
     const form = event.currentTarget;
     const email = loginButtonsSession.get("inSignupFlow");
     if (email) {
-      if (instance.data.linkingNewIdentity) {
+      if (instance.data.linkingNewCredential) {
         Meteor.call("linkEmailIdentityToAccount", email, form.token.value, true, (err, result) => {
           if (err) {
             loginButtonsSession.errorMessage(err.reason || "Unknown error");
           } else {
             loginButtonsSession.set("inSignupFlow", false);
             loginButtonsSession.closeDropdown();
-            instance.data.linkingNewIdentity.doneCallback();
+            instance.data.linkingNewCredential.doneCallback();
           }
         });
       } else {
         loginWithToken(email, form.token.value);
       }
     } else {
-      sendEmail(form.email.value, !!instance.data.linkingNewIdentity);
+      sendEmail(form.email.value, !!instance.data.linkingNewCredential);
     }
   },
 
@@ -371,7 +371,7 @@ Template.emailAuthenticationForm.events({
 
 Template.emailAuthenticationForm.helpers({
   disabled() {
-    return !(Accounts.identityServices.email && Accounts.identityServices.email.isEnabled());
+    return !(Accounts.loginServices.email && Accounts.loginServices.email.isEnabled());
   },
 
   awaitingToken() {
@@ -389,7 +389,7 @@ Template.ldapLoginForm.helpers({
 Template.ldapLoginForm.events({
   "submit form"(event, instance) {
     event.preventDefault();
-    if (instance.data.linkingNewIdentity) {
+    if (instance.data.linkingNewCredential) {
       sessionStorage.setItem("linkingIdentityLoginToken", Accounts._storedLoginToken());
     }
 
@@ -428,8 +428,8 @@ function closeLoginOverlays() {
   });
 }
 
-function loginDevHelper(name, isAdmin, linkingNewIdentity) {
-  if (linkingNewIdentity) {
+function loginDevHelper(name, isAdmin, linkingNewCredential) {
+  if (linkingNewCredential) {
     sessionStorage.setItem("linkingIdentityLoginToken", Accounts._storedLoginToken());
   }
 
@@ -456,13 +456,13 @@ Template.devLoginForm.events({
   "click button.login-dev-account"(event, instance) {
     const displayName = event.currentTarget.getAttribute("data-name");
     const isAdmin = !!event.currentTarget.getAttribute("data-is-admin");
-    loginDevHelper(displayName, isAdmin, instance.data.linkingNewIdentity);
+    loginDevHelper(displayName, isAdmin, instance.data.linkingNewCredential);
   },
 
   "submit form"(event, instance) {
     event.preventDefault();
     const form = instance.find("form");
-    loginDevHelper(form.name.value, false, instance.data.linkingNewIdentity);
+    loginDevHelper(form.name.value, false, instance.data.linkingNewCredential);
   },
 });
 
@@ -475,7 +475,7 @@ Template.samlLoginForm.helpers({
 
 Template.samlLoginForm.events({
   "click button"(event, instance) {
-    if (instance.data.linkingNewIdentity) {
+    if (instance.data.linkingNewCredential) {
       sessionStorage.setItem("linkingIdentityLoginToken", Accounts._storedLoginToken());
     }
 

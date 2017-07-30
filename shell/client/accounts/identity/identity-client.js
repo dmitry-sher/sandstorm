@@ -23,10 +23,10 @@ const LoginIdentitiesOfLinkedAccounts = new Mongo.Collection("loginIdentitiesOfL
 //   loginAccountId: ID of the account that the login identity can log in to.
 //   sourceIdentityId: Identity ID of the source identity.
 
-const linkingNewIdentity = new ReactiveVar(false);
+const linkingNewCredential = new ReactiveVar(false);
 
 Accounts.isLinkingNewIdentity = function () {
-  return linkingNewIdentity.get() || !!sessionStorage.getItem("linkingIdentityLoginToken");
+  return linkingNewCredential.get() || !!sessionStorage.getItem("linkingIdentityLoginToken");
 };
 
 Template.identityLoginInterstitial.onCreated(function () {
@@ -94,7 +94,7 @@ Template.identityLoginInterstitial.onCreated(function () {
   if (token) {
     this._state.set({ linkingIdentity: true });
     sessionStorage.removeItem("linkingIdentityLoginToken");
-    linkingNewIdentity.set(true);
+    linkingNewCredential.set(true);
 
     Meteor.call("linkIdentityToAccount", token, (err) => {
       if (err) {
@@ -111,7 +111,7 @@ Template.identityLoginInterstitial.onCreated(function () {
 
       this._state.set({ loggingInWithToken: true });
       Meteor.loginWithToken(token, (err) => {
-        linkingNewIdentity.set(false);
+        linkingNewCredential.set(false);
         if (err) {
           this._state.set({ loginWithTokenFailed: err });
         } else {
@@ -398,9 +398,9 @@ Template.identityCardSignInButton.events({
 
     const data = Template.instance().data;
     const name = data.identity.profile.service;
-    const result = Accounts.identityServices[name].initiateLogin(data.identity.loginId);
+    const result = Accounts.loginServices[name].initiateLogin(data.identity.loginId);
     if ("form" in result) {
-      const loginTemplate = Accounts.identityServices[name].loginTemplate;
+      const loginTemplate = Accounts.loginServices[name].loginTemplate;
       instance._form.set({
         loginId: data.identity.loginId,
         data: loginTemplate.data,

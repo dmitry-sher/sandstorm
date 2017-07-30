@@ -383,7 +383,7 @@ Meteor.startup(() => {
       const services = value.services;
       if (services) {
         services.forEach(service => {
-          if (!Accounts.identityServices[service]) {
+          if (!Accounts.loginServices[service]) {
             throw new Error("No such identity service: " + service);
           }
         });
@@ -407,8 +407,8 @@ Meteor.startup(() => {
         cardTemplate: "emailVerifierPowerboxCard",
       });
 
-      for (const name in Accounts.identityServices) {
-        if (Accounts.identityServices[name].isEnabled()) {
+      for (const name in Accounts.loginServices) {
+        if (Accounts.loginServices[name].isEnabled()) {
           results.push({
             _id: "emailverifier-" + name,
             frontendRef: { emailVerifier: { services: [name] } },

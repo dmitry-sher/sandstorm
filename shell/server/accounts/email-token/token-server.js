@@ -113,7 +113,7 @@ Accounts.registerLoginHandler("email", function (options) {
     return undefined; // don't handle
   }
 
-  if (!Accounts.identityServices.email.isEnabled()) {
+  if (!Accounts.loginServices.email.isEnabled()) {
     throw new Meteor.Error(403, "Email identity service is disabled.");
   }
 
@@ -289,7 +289,7 @@ Meteor.methods({
       rootUrl: String,
     });
 
-    if (!Accounts.identityServices.email.isEnabled()) {
+    if (!Accounts.loginServices.email.isEnabled()) {
       throw new Meteor.Error(403, "Email identity service is disabled.");
     }
     // Create user. result contains id and token.

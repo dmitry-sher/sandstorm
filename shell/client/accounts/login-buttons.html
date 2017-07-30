@@ -158,7 +158,7 @@ licenses, included in the LICENSES directory.
 <template name="loginButtonsList">
   <div class="login-buttons-list">
   {{#each services}}
-    {{#with data=loginTemplate.data linkingNewIdentity=linkingNewIdentity}}
+    {{#with data=loginTemplate.data linkingNewCredential=linkingNewCredential}}
       {{> Template.dynamic template=../loginTemplate.name }}
     {{/with}}
   {{else}}
@@ -218,7 +218,7 @@ licenses, included in the LICENSES directory.
 </template>
 
 <template name="emailLoginForm">
-  {{> emailAuthenticationForm linkingNewIdentity=linkingNewIdentity description="with e-mail"
+  {{> emailAuthenticationForm linkingNewCredential=linkingNewCredential description="with e-mail"
                               prompt="email" sendButtonText="send Login Email"
                               loginId=loginId}}
 </template>

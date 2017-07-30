@@ -129,7 +129,7 @@ Template.sandstormAccountSettings.helpers({
     return function (x) { actionCompleted.set(x); };
   },
 
-  linkingNewIdentityData: function () {
+  linkingNewCredentialData: function () {
     const instance = Template.instance();
     return {
       doneCallback: function () {
@@ -142,7 +142,7 @@ Template.sandstormAccountSettings.helpers({
   emailLoginFormData: function () {
     const instance = Template.instance();
     return {
-      linkingNewIdentity: {
+      linkingNewCredential: {
         doneCallback: function () {
           const input = instance.find("input[name='email']");
           if (input) {

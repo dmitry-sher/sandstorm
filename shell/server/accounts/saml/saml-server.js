@@ -31,7 +31,7 @@ Accounts.registerLoginHandler(function (loginRequest) {
     return undefined;
   }
 
-  if (!Accounts.identityServices.saml.isEnabled()) {
+  if (!Accounts.loginServices.saml.isEnabled()) {
     throw new Meteor.Error(403, "SAML service is disabled.");
   }
 
@@ -109,7 +109,7 @@ const middleware = function (req, res, next) {
       return;
     }
 
-    if (!Accounts.identityServices.saml.isEnabled()) {
+    if (!Accounts.loginServices.saml.isEnabled()) {
       next();
       return;
     }
