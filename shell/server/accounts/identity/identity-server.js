@@ -16,13 +16,13 @@
 
 import { SandstormBackend } from "/imports/server/backend.js";
 
-const linkIdentityToAccountInternal = function (db, backend, identityId, accountId, allowLogin) {
-  // Links the identity to the account. If `allowLogin` is true, grants the identity login access
+const linkCredentialToAccountInternal = function (db, backend, credentialId, accountId, allowLogin) {
+  // Links the credential to the account. If `allowLogin` is true, grants the credential login access
   // if possible. Makes the account durable if it is a demo account.
 
   check(db, SandstormDb);
   check(backend, SandstormBackend);
-  check(identityId, String);
+  check(credentialId, String);
   check(accountId, String);
 
   const accountUser = Meteor.users.findOne({ _id: accountId });
@@ -30,42 +30,42 @@ const linkIdentityToAccountInternal = function (db, backend, identityId, account
     throw new Meteor.Error(404, "No account found with ID " + accountId);
   }
 
-  if (accountUser.profile) {
-    throw new Meteor.Error(400, "Cannot link an identity to another identity.");
+  if (accountUser.type !== "account") {
+    throw new Meteor.Error(400, "Cannot link a credential to another credential.");
   }
 
-  if (!!_.findWhere(accountUser.loginCredentials, { id: identityId }) ||
-      !!_.findWhere(accountUser.nonloginCredentials, { id: identityId })) {
+  if (!!_.findWhere(accountUser.loginCredentials, { id: credentialId }) ||
+      !!_.findWhere(accountUser.nonloginCredentials, { id: credentialId })) {
     throw new Meteor.Error("alreadyLinked",
-      "Cannot link an identity that's alread linked to this account.");
+      "Cannot link a credential that's alread linked to this account.");
   }
 
-  const identityUser = Meteor.users.findOne({ _id: identityId });
+  const credentialUser = Meteor.users.findOne({ _id: credentialId });
 
-  if (!identityUser) {
-    throw new Meteor.Error(404, "No identity found with ID " + identityId);
+  if (!credentialUser) {
+    throw new Meteor.Error(404, "No credential found with ID " + credentialId);
   }
 
-  if (!identityUser.profile) {
+  if (!credentialUser.profile) {
     throw new Meteor.Error(400, "Cannot link an account to another account");
   }
 
-  db.deleteUnusedAccount(backend, identityUser._id);
-  if (Meteor.users.findOne({ "loginCredentials.id": identityUser._id })) {
+  db.deleteUnusedAccount(backend, credentialUser._id);
+  if (Meteor.users.findOne({ "loginCredentials.id": credentialUser._id })) {
     throw new Meteor.Error(403,
-                           "Cannot link an identity that can already log into another account");
+                           "Cannot link a credential that can already log into another account");
   }
 
-  const alreadyLinked = !!Meteor.users.findOne({ "nonloginCredentials.id": identityUser._id });
+  const alreadyLinked = !!Meteor.users.findOne({ "nonloginCredentials.id": credentialUser._id });
 
   const pushModifier = (alreadyLinked || !allowLogin)
-        ? { nonloginCredentials: { id: identityUser._id } }
-        : { loginCredentials: { id: identityUser._id } };
+        ? { nonloginCredentials: { id: credentialUser._id } }
+        : { loginCredentials: { id: credentialUser._id } };
 
   let modifier;
   if (accountUser.expires) {
     if (alreadyLinked) {
-      throw new Meteor.Error(403, "Cannot create an account for an identity that's " +
+      throw new Meteor.Error(403, "Cannot create an account for a credential that's " +
                                   "already linked to another account.");
     }
 
@@ -83,42 +83,42 @@ const linkIdentityToAccountInternal = function (db, backend, identityId, account
     modifier = { $push: pushModifier };
   }
 
-  // Make sure not to add the same identity twice.
+  // Make sure not to add the same credential twice.
   Meteor.users.update({ _id: accountUser._id,
-                        "nonloginCredentials.id": { $ne: identityUser._id },
-                        "loginCredentials.id": { $ne: identityUser._id }, },
+                        "nonloginCredentials.id": { $ne: credentialUser._id },
+                        "loginCredentials.id": { $ne: credentialUser._id }, },
                       modifier);
 
   if (accountUser.expires) {
-    const demoIdentityId = SandstormDb.getUserIdentityIds(accountUser)[0];
-    Meteor.users.update({ _id: demoIdentityId },
+    const demoCredentialId = SandstormDb.getUserCredentialIds(accountUser)[0];
+    Meteor.users.update({ _id: demoCredentialId },
                         { $unset: { expires: 1 },
                           $set: { upgradedFromDemo: Date.now() }, });
 
-    // Mark the demo identity as nonlogin. It'd be nicer if the identity started out as nonlogin,
+    // Mark the demo credential as nonlogin. It'd be nicer if the credential started out as nonlogin,
     // but to get that to work we would need to adjust the account creation and first login logic.
     Meteor.users.update({ _id: accountUser._id,
-                          "loginCredentials.id": demoIdentityId,
-                          "nonloginCredentials.id": { $not: { $eq: demoIdentityId } }, },
-                        { $pull: { loginCredentials: { id: demoIdentityId } },
-                          $push: { nonloginCredentials: { id: demoIdentityId } }, });
+                          "loginCredentials.id": demoCredentialId,
+                          "nonloginCredentials.id": { $not: { $eq: demoCredentialId } }, },
+                        { $pull: { loginCredentials: { id: demoCredentialId } },
+                          $push: { nonloginCredentials: { id: demoCredentialId } }, });
 
   }
 };
 
 Meteor.methods({
-  loginWithIdentity: function (accountUserId) {
+  loginWithCredential: function (accountUserId) {
     // Logs into the account with ID `accountUserId`. Throws an exception if the current user is
-    // not an identity user listed in the account's `loginCredentials` field. This method is not
+    // not a credential user listed in the account's `loginCredentials` field. This method is not
     // intended to be called directly; client-side code should only invoke it through
-    // `Meteor.loginWithIdentity()`, which additionally maintains the standard Meteor client-side
+    // `Meteor.loginWithCredential()`, which additionally maintains the standard Meteor client-side
     // login state.
 
     check(accountUserId, String);
 
-    const identityUser = Meteor.user();
-    if (!identityUser || !identityUser.profile) {
-      throw new Meteor.Error(403, "Must be already logged in as an identity.");
+    const credentialUser = Meteor.user();
+    if (!credentialUser || !credentialUser.profile) {
+      throw new Meteor.Error(403, "Must be already logged in as an credential.");
     }
 
     const accountUser = Meteor.users.findOne(accountUserId);
@@ -126,23 +126,23 @@ Meteor.methods({
       throw new Meteor.Error(404, "No such user found: " + accountUserId);
     }
 
-    const linkedIdentity = _.findWhere(accountUser.loginCredentials, { id: identityUser._id });
+    const linkedCredential = _.findWhere(accountUser.loginCredentials, { id: credentialUser._id });
 
-    if (!linkedIdentity) {
-      throw new Meteor.Error(403, "Current identity is not a login identity for account "
+    if (!linkedCredential) {
+      throw new Meteor.Error(403, "Current credential is not a login credential for account "
                              + accountUserId);
     }
 
-    return Accounts._loginMethod(this, "loginWithIdentity", [accountUserId],
-                                 "identity", function () { return { userId: accountUserId }; });
+    return Accounts._loginMethod(this, "loginWithCredential", [accountUserId],
+                                 "credential", function () { return { userId: accountUserId }; });
   },
 
-  createAccountForIdentity: function () {
-    // Creates a new account for the currently-logged-in identity.
+  createAccountForCredential: function () {
+    // Creates a new account for the currently-logged-in credential.
 
     const user = Meteor.user();
     if (!(user && user.profile)) {
-      throw new Meteor.Error(403, "Must be logged in as an identity in order to create an account.");
+      throw new Meteor.Error(403, "Must be logged in as a credential in order to create an account.");
     }
 
     if (Meteor.users.findOne({
@@ -151,7 +151,7 @@ Meteor.methods({
         { "nonloginCredentials.id": user._id },
       ],
     })) {
-      throw new Meteor.Error(403, "Cannot create an account for an identity that's already " +
+      throw new Meteor.Error(403, "Cannot create an account for a credential that's already " +
                                   "linked to another account.");
     }
 
@@ -178,14 +178,14 @@ Meteor.methods({
 
     const options = {};
 
-    // This will throw an error if the identity has been added as a login identity to some
+    // This will throw an error if the credential has been added as a login credential to some
     // other account while we were executing the body of this method.
     return Accounts.insertUserDoc(options, newUser);
   },
 
-  linkIdentityToAccount: function (token) {
-    // Links the identity of the current user to the account that has `token` as a resume token.
-    // If the account is a demo account, makes the account durable and gives the identity login
+  linkCredentialToAccount: function (token) {
+    // Links the credential of the current user to the account that has `token` as a resume token.
+    // If the account is a demo account, makes the account durable and gives the credential login
     // access to it.
 
     check(token, String);
@@ -197,109 +197,109 @@ Meteor.methods({
     const hashed = Accounts._hashLoginToken(token);
     const accountUser = Meteor.users.findOne({ "services.resume.loginTokens.hashedToken": hashed });
 
-    linkIdentityToAccountInternal(this.connection.sandstormDb, this.connection.sandstormBackend,
-                                  this.userId, accountUser._id, true);
+    linkCredentialToAccountInternal(this.connection.sandstormDb, this.connection.sandstormBackend,
+                                    this.userId, accountUser._id, true);
   },
 
-  unlinkIdentity: function (accountUserId, identityId) {
-    // Unlinks the identity with ID `identityId` from the account with ID `accountUserId`.
+  unlinkCredential: function (accountUserId, credentialId) {
+    // Unlinks the credential with ID `credentialId` from the account with ID `accountUserId`.
 
-    check(identityId, String);
+    check(credentialId, String);
     check(accountUserId, String);
 
     if (!this.userId) {
       throw new Meteor.Error(403, "Not logged in.");
     }
 
-    if (!this.connection.sandstormDb.userHasIdentity(this.userId, identityId)) {
-      throw new Meteor.Error(403, "Current user does not own identity " + identityId);
+    if (!this.connection.sandstormDb.userHasCredential(this.userId, credentialId)) {
+      throw new Meteor.Error(403, "Current user does not own credential " + credentialId);
     }
 
-    const identityUser = Meteor.users.findOne({ _id: identityId });
+    const credentialUser = Meteor.users.findOne({ _id: credentialId });
     Meteor.users.update({
       _id: accountUserId,
     }, {
       $pull: {
-        nonloginCredentials: { id: identityId },
-        loginCredentials: { id: identityId },
+        nonloginCredentials: { id: credentialId },
+        loginCredentials: { id: credentialId },
       },
     });
   },
 
-  setIdentityAllowsLogin: function (identityId, allowLogin) {
-    // Sets whether the current account allows the identity with ID `identityId` to log in.
+  setCredentialAllowsLogin: function (credentialId, allowLogin) {
+    // Sets whether the current account allows the credential with ID `credentialId` to log in.
 
-    check(identityId, String);
+    check(credentialId, String);
     check(allowLogin, Boolean);
     if (!this.userId) {
       throw new Meteor.Error(403, "Not logged in.");
     }
 
-    if (!this.connection.sandstormDb.userHasIdentity(this.userId, identityId)) {
-      throw new Meteor.Error(403, "Current user does not own identity " + identityId);
+    if (!this.connection.sandstormDb.userHasCredential(this.userId, credentialId)) {
+      throw new Meteor.Error(403, "Current user does not own credential " + credentialId);
     }
 
     if (allowLogin) {
       Meteor.users.update({ _id: this.userId,
-                            "nonloginCredentials.id": identityId,
-                            "loginCredentials.id": { $not: { $eq: identityId } }, },
-                          { $pull: { nonloginCredentials: { id: identityId } },
-                            $push: { loginCredentials: { id: identityId } }, });
+                            "nonloginCredentials.id": credentialId,
+                            "loginCredentials.id": { $not: { $eq: credentialId } }, },
+                          { $pull: { nonloginCredentials: { id: credentialId } },
+                            $push: { loginCredentials: { id: credentialId } }, });
     } else {
       Meteor.users.update({ _id: this.userId,
-                            "loginCredentials.id": identityId,
-                            "nonloginCredentials.id": { $not: { $eq: identityId } }, },
-                          { $pull: { loginCredentials: { id: identityId } },
-                            $push: { nonloginCredentials: { id: identityId } }, });
+                            "loginCredentials.id": credentialId,
+                            "nonloginCredentials.id": { $not: { $eq: credentialId } }, },
+                          { $pull: { loginCredentials: { id: credentialId } },
+                            $push: { nonloginCredentials: { id: credentialId } }, });
     }
   },
 
-  logoutIdentitiesOfCurrentAccount: function () {
-    // Logs out all identities that are allowed to log in to the current account.
+  logoutCredentialsOfCurrentAccount: function () {
+    // Logs out all credentials that are allowed to log in to the current account.
     const user = Meteor.user();
     if (user && user.loginCredentials) {
-      user.loginCredentials.forEach(function (identity) {
-        Meteor.users.update({ _id: identity.id }, { $set: { "services.resume.loginTokens": [] } });
+      user.loginCredentials.forEach(function (credential) {
+        Meteor.users.update({ _id: credential.id }, { $set: { "services.resume.loginTokens": [] } });
       });
     }
   },
 });
 
-Accounts.linkIdentityToAccount = function (db, backend, identityId, accountId, allowLogin) {
-  // Links the identity to the account. If the account is a demo account, makes it durable.
-  // If `allowLogin` is true, attempts to give the identity login access.
+Accounts.linkCredentialToAccount = function (db, backend, credentialId, accountId, allowLogin) {
+  // Links the credential to the account. If the account is a demo account, makes it durable.
+  // If `allowLogin` is true, attempts to give the credential login access.
   check(db, SandstormDb);
   check(backend, SandstormBackend);
-  check(identityId, String);
+  check(credentialId, String);
   check(accountId, String);
   check(allowLogin, Boolean);
-  linkIdentityToAccountInternal(db, backend, identityId, accountId, allowLogin);
+  linkCredentialToAccountInternal(db, backend, credentialId, accountId, allowLogin);
 };
 
-Meteor.publish("accountsOfIdentity", function (identityId) {
-  check(identityId, String);
-  if (!SandstormDb.ensureSubscriberHasIdentity(this, identityId)) return;
+Meteor.publish("accountsOfCredential", function (credentialId) {
+  check(credentialId, String);
+  if (!SandstormDb.ensureSubscriberHasCredential(this, credentialId)) return;
 
-  // We maintain a map from identity IDs to live query handles that track profile changes.
+  // We maintain a map from credential IDs to live query handles that track profile changes.
   const loginCredentials = {};
 
   const _this = this;
-  function addIdentitiesOfAccount(account) {
-    account.loginCredentials.forEach(function (identity) {
-      if (!(identity.id in loginCredentials)) {
-        const user = Meteor.users.findOne({ _id: identity.id });
+  function addCredentialsOfAccount(account) {
+    account.loginCredentials.forEach(function (credential) {
+      if (!(credential.id in loginCredentials)) {
+        const user = Meteor.users.findOne({ _id: credential.id });
         if (user) {
           SandstormDb.fillInProfileDefaults(user);
           SandstormDb.fillInIntrinsicName(user);
           SandstormDb.fillInLoginId(user);
           const filteredUser = _.pick(user, "_id", "profile", "loginId");
           filteredUser.loginAccountId = account._id;
-          filteredUser.sourceIdentityId = identityId;
+          filteredUser.sourceCredentialId = credentialId;
           _this.added("loginCredentialsOfLinkedAccounts", user._id, filteredUser);
         }
 
-        loginCredentials[identity.id] =
-          Meteor.users.find({ _id: identity.id }, { fields: { profile: 1 } }).observeChanges({
+        loginCredentials[credential.id] =
+          Meteor.users.find({ _id: credential.id }, { fields: { profile: 1 } }).observeChanges({
             changed: function (id, fields) {
               _this.changed("loginCredentialsOfLinkedAccounts", id, fields);
             },
@@ -310,26 +310,26 @@ Meteor.publish("accountsOfIdentity", function (identityId) {
 
   const cursor = Meteor.users.find({
     $or: [
-      { "loginCredentials.id": identityId },
-      { "nonloginCredentials.id": identityId },
+      { "loginCredentials.id": credentialId },
+      { "nonloginCredentials.id": credentialId },
     ],
   });
 
   const handle = cursor.observe({
     added: function (account) {
-      addIdentitiesOfAccount(account);
+      addCredentialsOfAccount(account);
     },
 
     changed: function (newAccount, oldAccount) {
-      addIdentitiesOfAccount(newAccount);
+      addCredentialsOfAccount(newAccount);
     },
 
     removed: function (account) {
-      account.loginCredentials.forEach(function (identity) {
-        if (identity.id in loginCredentials) {
-          _this.removed("loginCredentialsOfLinkedAccounts", identity.id);
-          loginCredentials[identity.id].stop();
-          delete loginCredentials[identity.id];
+      account.loginCredentials.forEach(function (credential) {
+        if (credential.id in loginCredentials) {
+          _this.removed("loginCredentialsOfLinkedAccounts", credential.id);
+          loginCredentials[credential.id].stop();
+          delete loginCredentials[credential.id];
         }
       });
     },
@@ -338,9 +338,9 @@ Meteor.publish("accountsOfIdentity", function (identityId) {
 
   this.onStop(function () {
     handle.stop();
-    Object.keys(loginCredentials).forEach(function (identityId) {
-      loginCredentials[identityId].stop();
-      delete loginCredentials[identityId];
+    Object.keys(loginCredentials).forEach(function (credentialId) {
+      loginCredentials[credentialId].stop();
+      delete loginCredentials[credentialId];
     });
   });
 });

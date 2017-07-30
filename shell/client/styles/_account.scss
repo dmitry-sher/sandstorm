@@ -1600,7 +1600,7 @@ body>.popup.billing-prompt>.frame-container>.frame, .first-time-billing-prompt {
   }
 }
 
-.identity-login-interstitial {
+.credential-login-interstitial {
   z-index: 1;
   background-color: #efefef;
   div.centered-content{
@@ -1608,7 +1608,7 @@ body>.popup.billing-prompt>.frame-container>.frame, .first-time-billing-prompt {
     text-align: center;
     width: 400px;
     background-color: white;
-    >.identity-card {
+    >.credential-card {
       border: 1px solid gray;
     }
     .warning-banner {
@@ -1651,7 +1651,7 @@ body>.popup.billing-prompt>.frame-container>.frame, .first-time-billing-prompt {
   }
 }
 
-.identity-card-sign-in {
+.credential-card-sign-in {
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -1667,7 +1667,7 @@ body>.popup.billing-prompt>.frame-container>.frame, .first-time-billing-prompt {
   }
 }
 
-.identity-management-controls {
+.credential-management-controls {
   >div {
     margin-top: 10px;
   }
@@ -1681,7 +1681,7 @@ body>.popup.billing-prompt>.frame-container>.frame, .first-time-billing-prompt {
       li{
         position: relative;
         padding-bottom: 10px;
-        .identity-card {
+        .credential-card {
           border: 1px solid black;
         }
         button.unlink {
@@ -1702,7 +1702,7 @@ body>.popup.billing-prompt>.frame-container>.frame, .first-time-billing-prompt {
     @extend %button-base;
     @extend %button-secondary;
   }
-  button.unlink-identity {
+  button.unlink-credential {
     @extend %button-base;
     @extend %button-secondary;
     width: 200px;
@@ -1721,7 +1721,7 @@ body>.popup.billing-prompt>.frame-container>.frame, .first-time-billing-prompt {
   }
 }
 
-ul.identity-card-list {
+ul.credential-card-list {
   padding-left: 0;
   li {
     list-style-type: none;
@@ -1731,14 +1731,14 @@ ul.identity-card-list {
       @include unstyled-button();
       border: 1px solid $generic-border-color;
     }
-    &.current-identity>button {
+    &.current-credential>button {
       height: 56px;
       border: 2px solid black;
     }
   }
 }
 
-.identity-card {
+.credential-card {
   display: inline-block;
   position: relative;
   height: 52px;
