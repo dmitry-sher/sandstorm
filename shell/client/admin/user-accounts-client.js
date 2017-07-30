@@ -187,7 +187,7 @@ Template.newAdminUsers.onCreated(function () {
           // For some reason, various servers (including alpha) appear to have accounts that
           // reference credentials which do not exist in the database.
 
-          credential.intrinsicName = SandstormDb.getIntrinsicName(credential, false);
+          credential.intrinsicName = SandstormDb.getIntrinsicName(credential, true);
           credential.serviceName = SandstormDb.getServiceName(credential);
         }
 

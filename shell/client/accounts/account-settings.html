@@ -56,9 +56,14 @@ limitations under the License.
       {{#unless isLinkingNewCredential}}
       <ul role="tablist" >
         {{#each credentials}}
-        <li role="tab" tabindex="0" aria-controls="profile-tab-{{_id}}" id="profile-tab-header-{{_id}}"
-            aria-selected="{{isCredentialSelected _id}}" data-credential-id="{{_id}}">
+        <li data-credential-id="{{_id}}">
           {{> credentialCard .}}
+          <ul class="verified-email-list">
+            {{#each verifiedEmails}}
+            <li> {{.}} </li>
+            {{/each}}
+          </ul>
+          {{> credentialManagementButtons credentialManagementButtonsData}}
         </li>
         {{/each}}
       </ul>
@@ -252,18 +257,6 @@ setActionCompleted: (optional) Function.  Callback triggered on profile saved or
         </li>
 
         <li class="form-group">
-          <label>
-            E-mail:
-          </label>
-          <ul class="verified-email-list">
-            {{#each verifiedEmails}}
-            <li> {{.}} </li>
-            {{/each}}
-          </ul>
-          <span class="form-subtext">{{emailDetails}}</span>
-        </li>
-
-        <li class="form-group">
           {{#with pronoun=profile.pronoun}}
           <label>
             Preferred pronoun:
@@ -305,10 +298,5 @@ setActionCompleted: (optional) Function.  Callback triggered on profile saved or
         {{/unless}}
       </ul>
     </form>
-
-    {{#if hasCompletedSignup}}
-      <hr>
-      {{> credentialManagementButtons credentialManagementButtonsData}}
-    {{/if}}
   </div>
 </template>

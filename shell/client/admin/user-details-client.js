@@ -39,7 +39,7 @@ const lookupCredentialId = (credentialId) => {
     // Sometimes, DBs lack the corresponding user credential document.
     // Defensively avoid dereferencing a possibly-undefined credential.
 
-    credential.intrinsicName = SandstormDb.getIntrinsicName(credential, false);
+    credential.intrinsicName = SandstormDb.getIntrinsicName(credential, true);
     credential.serviceName = SandstormDb.getServiceName(credential);
   }
 

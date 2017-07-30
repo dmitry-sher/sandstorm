@@ -543,6 +543,21 @@ body>.main-content>.account {
         .make-no-login {
           @include unstyled-button();
         }
+
+        ul.verified-email-list {
+          >li {
+            // Vertically center each email address within a 30px space.
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 30px;
+            border-top: 1px solid #dddddd;
+            &:last-child {
+              border-bottom: 1px solid #dddddd;
+            }
+          }
+        }
       }
     }
     .login-buttons-list {
@@ -1106,21 +1121,6 @@ div.profile-editor {
       list-style-type: none;
       margin: 0;
       padding: 0;
-    }
-
-    ul.verified-email-list {
-      >li {
-        // Vertically center each email address within a 30px space.
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: flex-start;
-        min-height: 30px;
-        border-top: 1px solid #dddddd;
-        &:last-child {
-          border-bottom: 1px solid #dddddd;
-        }
-      }
     }
 
     .picture-row {
