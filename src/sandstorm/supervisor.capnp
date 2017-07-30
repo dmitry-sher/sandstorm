@@ -202,8 +202,8 @@ struct MembraneRequirement {
       # set of permissions on some specified grain.
 
       union {
-        identityId @5 :Text;
-        # The permissions must be held by the identity with this ID.
+        accountId @5 :Text;
+        # The permissions must be held by the user account with this ID.
 
         tokenId @6: Text;
         # The permissions must be held by anyone who bears the token with this ID.

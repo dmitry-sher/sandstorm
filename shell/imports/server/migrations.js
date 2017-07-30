@@ -1042,6 +1042,20 @@ function onePersonaPerAccount(db, backend) {
     }
   });
 
+  forEachProgress("migrating capabilities...",
+      db.collections.apiTokens.find({ "requirements.permissionsHeld.identityId": { $exists: true } }),
+      token => {
+    token.requirements.forEach(requirement => {
+      if (requinement.permissionsHeld && requinement.permissionsHeld.identityId) {
+        requinement.permissionsHeld.accountId =
+            accountForIdentity(requinement.permissionsHeld.identityId);
+      }
+    });
+
+    db.collections.apiTokens.update({ _id: token._id },
+        { $set: { requirements: token.requirements } });
+  }
+
   forEachProgress("migrating contacts...",
       db.collections.contacts.find(),
       contact => {
@@ -1099,8 +1113,12 @@ function onePersonaPerAccountPostCleanup(db, backend) {
       { $unset: { initiatingIdentity: 1 }},
       { multi: true });
 
-  db.collections.apiTokens.update({},
+  db.collections.apiTokens.update({ identityId: { $exists: true } },
       { $unset: { identityId: 1 } },
+      { multi: true });
+
+  db.collections.apiTokens.update({ "requirements.permissionsHeld.identityId": { $exists: true } },
+      { $unset: { "requirements.permissionsHeld.identityId": 1 } },
       { multi: true });
 }
 
