@@ -197,12 +197,12 @@ Template._loginButtonsLoggedInDropdown.helpers({
 Template._loginButtonsLoggedInDropdown.events({
   "click button.go-incognito"(event, instance) {
     const active = instance.data.grains.getActive();
-    if (active) active.revealIdentity(false);
+    if (active) active.doNotRevealIdentity();
   },
 
   "click button.leave-incognito"(event, instance) {
     const active = instance.data.grains.getActive();
-    if (active) active.revealIdentity(true);
+    if (active) active.revealIdentity();
   },
 });
 

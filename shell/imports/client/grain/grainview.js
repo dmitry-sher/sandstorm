@@ -136,7 +136,7 @@ class GrainView {
     return [this._grainId, this._path, this._tokenInfo];
   }
 
-  reset(identityId) {
+  reset(isIncognito) {  // TODO(now): param was identityId
     // TODO(cleanup): This duplicates some code from the GrainView constructor.
 
     this._dep.changed();
@@ -511,7 +511,12 @@ class GrainView {
     }
   }
 
+  isIncognito() {
+    // TODO(now)
+  }
+
   identityId() {
+    // TODO(now): remove
     this._dep.depend();
     const identityId = this._userIdentityId.get();
     if (identityId) {
@@ -539,6 +544,9 @@ class GrainView {
       if (!Meteor.userId()) {
         return null;
       }
+
+      // TODO(now): Don't show identity picker if incognito is not an option. Maybe don't ever show
+      //   it if the user and grain owner are both in the org.
 
       // Otherwise, we should show it.
       return {

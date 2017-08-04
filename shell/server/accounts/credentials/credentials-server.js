@@ -289,10 +289,11 @@ Meteor.publish("accountsOfCredential", function (credentialId) {
       if (!(credential.id in loginCredentials)) {
         const user = Meteor.users.findOne({ _id: credential.id });
         if (user) {
-          SandstormDb.fillInProfileDefaults(user);
-          SandstormDb.fillInIntrinsicName(user);
-          SandstormDb.fillInLoginId(user);
-          const filteredUser = _.pick(user, "_id", "profile", "loginId");
+          user.intrinsicName = SandstormDb.getIntrinsicName(user);
+          user.loginId = SandstormDb.getLoginId(user);
+          user.serviceName = SandstormDb.getServiceName(user);
+
+          const filteredUser = _.pick(user, "_id", "intrinsicName", "loginId", "serviceName");
           filteredUser.loginAccountId = account._id;
           filteredUser.sourceCredentialId = credentialId;
           _this.added("loginCredentialsOfLinkedAccounts", user._id, filteredUser);

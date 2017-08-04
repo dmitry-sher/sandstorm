@@ -270,6 +270,17 @@ SandstormDb.getLoginId = function (credential) {
   return Accounts.loginServices[SandstormDb.getServiceName(credential)].getLoginId(credential);
 };
 
+SandstormDb.prototype.getAccountIntrinsicNames = function (account, usePrivate) {
+  const credentialIds = SandstormDb.getUserCredentialIds(account)
+  return Meteor.users.find({ _id: { $in: credentialIds } }).map(credential => {
+    return {
+      service: SandstormDb.getServiceName(credential),
+      name: SandstormDb.getIntrinsicName(credential, usePrivate),
+      // TODO(soon): Add profile link?
+    };
+  });
+};
+
 SandstormDb.getVerifiedEmailsForCredential = function (credential) {
   const services = credential.services;
   if (services.google && services.google.email &&

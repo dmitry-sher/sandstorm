@@ -73,13 +73,13 @@ function cleanupExpiredUsers() {
     DeleteStats.insert(record);
   });
 
-  // All demo identities should have been deleted as part of deleting the demo users, but just in
+  // All demo credentials should have been deleted as part of deleting the demo users, but just in
   // case, check for them too.
   Meteor.users.find({ expires: { $lt: now }, loginCredentials: { $exists: false } },
                     { fields: { _id: 1 } })
               .forEach(function (user) {
-    console.log("delete demo identity: " + user._id);
-    globalDb.deleteIdentity(user._id);
+    console.log("delete demo credential: " + user._id);
+    globalDb.deleteCredential(user._id);
   });
 }
 

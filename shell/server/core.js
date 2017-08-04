@@ -44,11 +44,6 @@ class SandstormCoreImpl {
         throw new Error("no such token");
       }
 
-      if (token.owner.grain.introducerIdentity) {
-        throw new Error("Cannot restore grain-owned sturdyref that contains the obsolete " +
-                        "introducerIdentity field. Please request a new capability.");
-      }
-
       return restoreInternal(this.db, sturdyRef,
                              { grain: Match.ObjectIncluding({ grainId: this.grainId }) },
                              [], token);
@@ -421,9 +416,9 @@ const makeSaveTemplateForChild = function (db, parentToken, requirements, parent
     delete saveTemplate.owner;
     delete saveTemplate.created;
   } else {
-    if (parentTokenInfo.identityId) {
+    if (parentTokenInfo.accountId) {
       // A UiView token. Need to denormalize some fields from the parent.
-      saveTemplate = _.pick(parentTokenInfo, "grainId", "identityId", "accountId");
+      saveTemplate = _.pick(parentTokenInfo, "grainId", "accountId");
 
       // By default, a save()d copy should have the same permissions, so set an allAccess role
       // assignment.

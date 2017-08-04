@@ -849,12 +849,17 @@ function onePersonaPerAccountPreCleanup(db, backend) {
   // created the ApiToken was deleted (which, at the time, was only possible for demo users, or
   // through direct database manipulation). These tokens are all invalid and couldn't possibly have
   // been used since the user was deleted.
-  Meteor.apiTokens.remove({ identityId: { $exists: true }, accountId: { $exists: false } });
+  db.collections.apiTokens.remove({ identityId: { $exists: true }, accountId: { $exists: false } });
+
+  // Remove ApiTokens that have the obsolete owner.grain.introducerIdentity field as these tokens
+  // are not allowed to be restored anyway.
+  db.collections.apiTokens.remove({ "owner.grain.introducerIdentity": { $exists: true } });
 
   // Make sure all demo credentials have a "services.demo" entry, to be consistent with all other
   // service types.
   Meteor.users.update({ "profile.service": "demo" },
                       { $set: { "services.demo": {} } });
+
 }
 
 function forEachProgress(title, cursor, func) {

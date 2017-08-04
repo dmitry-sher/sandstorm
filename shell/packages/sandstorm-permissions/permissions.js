@@ -1648,13 +1648,12 @@ SandstormPermissions.cleanupClientPowerboxTokens = function (db) {
 };
 
 Meteor.methods({
-  transitiveShares: function (accountId, grainId) {
-    check(accountId, String);
+  transitiveShares: function (obsolete, grainId) {
     check(grainId, String);
     if (this.userId) {
       const db = this.connection.sandstormDb;
       return SandstormPermissions.downstreamTokens(db,
-          { grain: { _id: grainId, accountId: accountId } });
+          { grain: { _id: grainId, accountId: this.userId } });
     }
   },
 
