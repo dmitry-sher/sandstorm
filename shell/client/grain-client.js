@@ -581,7 +581,7 @@ Template.grainInMyTrash.events({
       if (err) {
         console.error(err.stack);
       } else {
-        grain.reset(grain.isIncognito());
+        grain.reset(!grain.isIncognito());
         grain.openSession();
       }
     });

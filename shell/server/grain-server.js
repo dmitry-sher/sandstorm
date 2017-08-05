@@ -214,7 +214,7 @@ SandstormDb.periodicCleanup(86400000, () => {
 });
 
 Meteor.methods({
-  updateGrainTitle: function (grainId, newTitle) {
+  updateGrainTitle: function (grainId, newTitle, obsolete) {
     check(grainId, String);
     check(newTitle, String);
     if (this.userId) {

@@ -269,7 +269,7 @@ Meteor.methods({
     return grainId;
   },
 
-  openSession(grainId, identityId, cachedSalt, options) {
+  openSession(grainId, revealIdentity, cachedSalt, options) {
     // Open a new UI session on an existing grain.  Starts the grain if it is not already
     // running.
 
@@ -329,7 +329,7 @@ Meteor.methods({
     return result;
   },
 
-  openSessionFromApiToken(params, identityId, cachedSalt, neverRedeem, parentOrigin, options) {
+  openSessionFromApiToken(params, revealIdentity, cachedSalt, neverRedeem, parentOrigin, options) {
     // Given an API token, either opens a new WebSession to the underlying grain or returns a
     // path to which the client should redirect in order to open such a session.
     //

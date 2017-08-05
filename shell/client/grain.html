@@ -86,12 +86,12 @@
 </template>
 
 
-<template name="wrongIdentity">
+<template name="wrongUser">
   <div class="grain-interstitial">
     <p>
-      Access through this URL is restricted to the identity:
+      Access through this URL is restricted to the user:
     </p>
-    {{> identityCardSignInButton identity=recipient unclickedMessage=unclickedMessage}}
+    {{> accountCardSignInButton account=recipient unclickedMessage=unclickedMessage}}
   </div>
 </template>
 
@@ -263,7 +263,7 @@
   {{#if isReady}}
   <div class="tables-container">
     <h5>People</h5>
-    {{#if transitiveShares.identityOwnedShares.empty}}
+    {{#if transitiveShares.accountOwnedShares.empty}}
       {{#if existingShareTokens}}
         <p>No logged-in users have visited your links yet.</p>
       {{else}}
@@ -275,7 +275,7 @@
       {{/if}}
     {{else}}
       <table class="people">
-        {{#each transitiveShares.identityOwnedShares}}
+        {{#each transitiveShares.accountOwnedShares}}
           <tr>
             <td> {{displayName recipient}} </td>
             <td> added by
@@ -393,7 +393,7 @@
     {{/if}}
     <p>
     <span class="icon icon-people"></span>
-    {{> contactInputBox contacts=contacts preselectedIdentityId=preselectedIdentityId
+    {{> contactInputBox contacts=contacts preselectedAccountId=preselectedAccountId
          disabled=isDemoUser}}
     {{> selectRole viewInfo=viewInfo disabled=isDemoUser}}
     </p>

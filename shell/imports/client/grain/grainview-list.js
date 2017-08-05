@@ -223,7 +223,7 @@ GrainViewList = class GrainViewList {
     }
 
     const ready = () => {
-      if (Meteor.loggingIn() || Accounts.isLinkingNewIdentity()) return false;
+      if (Meteor.loggingIn() || Accounts.isLinkingNewCredential()) return false;
 
       // The list auto-clears when Meteor.userId() changes. Make sure that we wait until the dust
       // has settled.
