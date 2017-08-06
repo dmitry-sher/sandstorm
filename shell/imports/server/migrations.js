@@ -788,6 +788,16 @@ function setIpBlacklist(db, backend) {
   }
 }
 
+function getUserIdentityIds(user) {
+  // Formerly SandstormDb.getUserIdentityIds(), from before the identity refactor.
+
+  if (user && user.loginIdentities) {
+    return _.pluck(user.nonloginIdentities.concat(user.loginIdentities), "id").reverse();
+  } else {
+    return [];
+  }
+}
+
 function notifyIdentityChanges(db, backend) {
   // Notify users who might be affected by the identity model changes.
   //
@@ -808,7 +818,7 @@ function notifyIdentityChanges(db, backend) {
                     { fields: { loginIdentities: 1, nonloginIdentities: 1 } }).forEach(user => {
     let previousName = null;
     let needsNotification = false;
-    SandstormDb.getUserIdentityIds(user).forEach(identityId => {
+    getUserIdentityIds(user).forEach(identityId => {
       const name = names[identityId];
       if (!name || (previousName && previousName !== name)) {
         needsNotification = true;
@@ -858,7 +868,8 @@ function onePersonaPerAccountPreCleanup(db, backend) {
   // Make sure all demo credentials have a "services.demo" entry, to be consistent with all other
   // service types.
   Meteor.users.update({ "profile.service": "demo" },
-                      { $set: { "services.demo": {} } });
+                      { $set: { "services.demo": {} } },
+                      { multi: true });
 
 }
 
@@ -866,7 +877,7 @@ function forEachProgress(title, cursor, func) {
   console.log(title);
 
   const total = cursor.count();
-  const count = 0;
+  let count = 0;
 
   cursor.forEach(doc => {
     func(doc);
@@ -882,11 +893,13 @@ function onePersonaPerAccount(db, backend) {
 
   console.log("tagging accounts...");
   Meteor.users.update({ type: { $exists: false }, loginIdentities: { $exists: true } },
-                      { $set: { type: "account" } });
+                      { $set: { type: "account" } },
+                      { multi: true });
 
   console.log("tagging credentials...");
   Meteor.users.update({ type: { $exists: false }, profile: { $exists: true } },
-                      { $set: { type: "credential" } });
+                      { $set: { type: "credential" } },
+                      { multi: true });
 
   // Map each identity ID to the list of connected accounts.
   console.log("building identity map...");
@@ -1002,9 +1015,9 @@ function onePersonaPerAccount(db, backend) {
 
     // Also figure out referrals.
     const referrers = Meteor.users.find(
-        { _id: { $in: SandstormDb.getUserIdentityIds(user) }, referredBy: { $exists: true } },
+        { _id: { $in: getUserIdentityIds(user) }, referredBy: { $exists: true } },
         { fields: { referredBy: 1 } })
-        .forEach(id => id.referredBy);
+        .map(id => id.referredBy);
     if (referrers.length > 0) {
       mod.referredBy = referrers[0];
     }
@@ -1051,22 +1064,22 @@ function onePersonaPerAccount(db, backend) {
       db.collections.apiTokens.find({ "requirements.permissionsHeld.identityId": { $exists: true } }),
       token => {
     token.requirements.forEach(requirement => {
-      if (requinement.permissionsHeld && requinement.permissionsHeld.identityId) {
-        requinement.permissionsHeld.accountId =
-            accountForIdentity(requinement.permissionsHeld.identityId);
+      if (requirement.permissionsHeld && requirement.permissionsHeld.identityId) {
+        requirement.permissionsHeld.accountId =
+            accountForIdentity(requirement.permissionsHeld.identityId);
       }
     });
 
     db.collections.apiTokens.update({ _id: token._id },
         { $set: { requirements: token.requirements } });
-  }
+  });
 
   forEachProgress("migrating identity capabilities...",
       db.collections.apiTokens.find({ "frontendRef.identity": { $exists: true } }),
       token => {
     db.collections.apiTokens.update({ _id: token._id },
         { $set: { "frontendRef.identity": accountForIdentity(token.frontendRef.identity) } });
-  }
+  });
 
   forEachProgress("migrating contacts...",
       db.collections.contacts.find(),
@@ -1172,6 +1185,9 @@ const MIGRATIONS = [
   addEncryptionToFrontendRefIpNetwork,
   setIpBlacklist,
   notifyIdentityChanges,
+  onePersonaPerAccountPreCleanup,
+  onePersonaPerAccount,
+  onePersonaPerAccountPostCleanup,
 ];
 
 const NEW_SERVER_STARTUP = [

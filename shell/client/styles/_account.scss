@@ -467,12 +467,6 @@ body>.main-content>.account {
     font-weight: 400;
   }
 
-  .profile-editor {
-    position: relative;
-    white-space: nowrap;
-    max-width: 660px;
-  }
-
   h2, h3 {
     text-align: left;
     border-bottom: 1px solid #6d6d6d;
@@ -514,9 +508,10 @@ body>.main-content>.account {
 
       li {
         list-style-type: none;
-        cursor: pointer;
         background-color: white;
         margin-bottom: 10px;
+        padding: 4px;
+        position: relative;
 
         @media #{$not-mobile-only} {
           margin-right: 7px;
@@ -533,29 +528,28 @@ body>.main-content>.account {
           }
         }
 
-        &:focus {
-          @extend %custom-focus-ring;
+        .credential-card {
+          display: static;
+          height: auto;
+          .login-provider-icon {
+            width: 32px;
+            height: 32px;
+          }
+          .name {
+            line-height: 32px;
+            font-size: 12pt;
+          }
         }
 
-        .make-login {
-          @include unstyled-button();
-        }
-        .make-no-login {
-          @include unstyled-button();
-        }
-
-        ul.verified-email-list {
-          >li {
-            // Vertically center each email address within a 30px space.
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 30px;
-            border-top: 1px solid #dddddd;
-            &:last-child {
-              border-bottom: 1px solid #dddddd;
-            }
+        .credential-management-controls {
+          div.toggle-login {
+            padding-left: 8px;
+            font-size: 9pt;
+          }
+          button.unlink-credential {
+            position: absolute;
+            right: 14px;
+            top: 8px;
           }
         }
       }
@@ -569,19 +563,7 @@ body>.main-content>.account {
     }
 
     .account-buttons {
-      @media #{$not-mobile-only} {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        justify-content: flex-start;
-      }
-      @media #{$mobile-only} {
-        order: -1;
-        display: flex;
-        flex-direction: row;
-        align-items: stretch;
-        justify-content: flex-start;
-      }
+      text-align: right;
     }
 
     button.account-button {
@@ -604,8 +586,9 @@ body>.main-content>.account {
 
       &.link-new-credential {
         @extend .icon-link;
+        @extend %button-primary;
         &::before {
-          font-size: 24px;
+          font-size: 20px;
           @extend .icon;
         }
       }
@@ -1594,7 +1577,7 @@ body>.popup.billing-prompt>.frame-container>.frame, .first-time-billing-prompt {
     width: 400px;
     background-color: white;
     >.credential-card {
-      border: 1px solid gray;
+      width: 100%;
     }
     .warning-banner {
       padding: 10px;
@@ -1641,8 +1624,12 @@ body>.popup.billing-prompt>.frame-container>.frame, .first-time-billing-prompt {
   align-items: center;
   flex-direction: column;
   button.sign-in {
-    @extend %button-base;
-    background-color: white;
+    border: none;
+    border-top: 1px solid #ddd;
+    width: 100%;
+    background-color: transparent;
+    cursor: pointer;
+    text-align: left;
   }
   h4 {
     margin-bottom: 5px;
@@ -1653,9 +1640,6 @@ body>.popup.billing-prompt>.frame-container>.frame, .first-time-billing-prompt {
 }
 
 .credential-management-controls {
-  >div {
-    margin-top: 10px;
-  }
   .login-credentials-of-linked-accounts {
     border: 1px solid gray;
     border-radius: 2px;
@@ -1690,15 +1674,16 @@ body>.popup.billing-prompt>.frame-container>.frame, .first-time-billing-prompt {
   button.unlink-credential {
     @extend %button-base;
     @extend %button-secondary;
-    width: 200px;
+    width: 80px;
     height: 30px;
+    padding-left: 30px;
 
     position: relative;
 
     @extend .icon-unlink;
     &::before {
       position: absolute;
-      left: 10px;
+      left: 5px;
       top: 2px;
       font-size: 24px;
       @extend .icon;
@@ -1724,6 +1709,31 @@ ul.credential-card-list {
 }
 
 .credential-card {
+  display: inline-block;
+  height: 52px;
+  text-align: left;
+  margin-bottom: 0;
+  color: black;
+  font-family: "Source Sans Pro", sans-serif;
+  background-color: white;
+
+  .login-provider-icon {
+    @extend %login-provider-icon;
+    width: 52px;
+    height: 52px;
+    float: left;
+  }
+
+  .name {
+    line-height: 52px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 14pt;
+  }
+}
+
+.account-card {
   display: inline-block;
   position: relative;
   height: 52px;

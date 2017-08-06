@@ -294,9 +294,9 @@ Meteor.methods({
           _id: String,
           isDefault: Match.Optional(Boolean),
           profile: Match.ObjectIncluding({
-            service: String,
+            service: Match.Optional(String),
             name: String,
-            intrinsicName: String,
+            intrinsicName: Match.Optional(String),
           }),
         },
       ]);
@@ -349,6 +349,7 @@ Meteor.methods({
               html: html,
             });
           } catch (e) {
+            console.error(e.stack);
             outerResult.failures.push({ contact: contact, error: e.toString() });
           }
         } else {
@@ -363,35 +364,17 @@ Meteor.methods({
                                       { primary: true });
             if (email) {
               const intrinsicName = contact.profile.intrinsicName;
-              let loginNote;
-              if (contact.profile.service === "google") {
-                loginNote = "Google account with address " + email.email;
-              } else if (contact.profile.service === "github") {
-                loginNote = "Github account with username " + intrinsicName;
-              } else if (contact.profile.service === "email") {
-                loginNote = "email address " + intrinsicName;
-              } else if (contact.profile.service === "ldap") {
-                loginNote = "LDAP username " + intrinsicName;
-              } else if (contact.profile.service === "saml") {
-                loginNote = "SAML ID " + intrinsicName;
-              } else {
-                throw new Meteor.Error(500, "Unknown service to email share link.");
-              }
 
               const html = escapedMessage + "<br><br>" +
                   emailLinkWithInlineStyle(url, "Open Shared Grain") +
-                  "<div style='font-size:8pt;font-style:italic;color:gray'>" +
-                  "Note: You will need to log in with your " + loginNote +
-                  " to access this grain.";
+                  "<div style='font-size:8pt;font-style:italic;color:gray'>";
               globalDb.incrementDailySentMailCount(accountId);
               sendEmail({
                 to: email.email,
                 from: fromEmail,
                 replyTo: replyTo,
                 subject: title + " - Invitation to collaborate",
-                text: message + "\n\nFollow this link to open the shared grain:\n\n" + url +
-                  "\n\nNote: You will need to log in with your " + loginNote +
-                  " to access this grain.",
+                text: message + "\n\nFollow this link to open the shared grain:\n\n" + url,
                 html: html,
               });
             } else {
@@ -400,6 +383,7 @@ Meteor.methods({
                 "manually share " + url + " with them.", });
             }
           } catch (e) {
+            console.error(e.stack);
             outerResult.failures.push({ contact: contact, error: e.toString(),
               warning: "Share succeeded, but there was an error emailing the user. Please " +
               "manually share " + url + " with them.", });

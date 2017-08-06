@@ -73,39 +73,6 @@
   background-color: #939393;
 }
 
-%login-provider-icon {
-  display: inline-flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  .provider-icon {
-    @extend %pseudo-img-tag;
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    font-size: 0px;
-    overflow: hidden;
-    &.dev {
-      background-image: url('/debug.svg');
-    }
-    &.email {
-      background-image: url('/email.svg');
-    }
-    &.google {
-      background-image: url('/google.svg');
-    }
-    &.github {
-      background-image: url('/github.svg');
-    }
-    &.ldap {
-      background-image: url('/ldap.svg');
-    }
-    &.saml {
-      background-image: url('/ldap.svg');
-    }
-  }
-}
-
 .admin-user-table {
   border: 1px solid $default-table-border-color;
 
@@ -253,15 +220,15 @@
             padding-bottom: 4px;
           }
 
-          .credential-provider-icon {
+          .login-provider-icon {
             align-self: flex-start;
-            @extend %credential-provider-icon;
+            @extend %login-provider-icon;
             width: 32px;
             height: 24px;
           }
 
           .credential-intrinsic-name {
-            flex: 0 1 40%;
+            flex: 0 1 1;
             padding-left: 4px;
             overflow: hidden;
             text-overflow: ellipsis;

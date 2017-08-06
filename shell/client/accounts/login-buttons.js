@@ -92,6 +92,7 @@ Template.accountButtons.helpers({
     if (isIncognito(grains)) return { displayName: "(incognito)", pictureUrl: "/incognito.svg", };
 
     const user = Meteor.user();
+    SandstormDb.fillInPictureUrl(user);
     return { displayName: user.profile.name, pictureUrl: user.profile.pictureUrl };
   },
 });
@@ -195,11 +196,6 @@ Template._loginButtonsLoggedInDropdown.helpers({
 });
 
 Template._loginButtonsLoggedInDropdown.events({
-  "click button.go-incognito"(event, instance) {
-    const active = instance.data.grains.getActive();
-    if (active) active.doNotRevealIdentity();
-  },
-
   "click button.leave-incognito"(event, instance) {
     const active = instance.data.grains.getActive();
     if (active) active.revealIdentity();

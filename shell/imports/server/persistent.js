@@ -60,7 +60,7 @@ class PersistentImpl {
         // Only "accountId" and "title" are allowed to be passed to save().
         const userOwner = _.pick(newToken.owner.user, "accountId", "title");
 
-        const grain = db.collections.grains.findOne(newToken.grainId);
+        const grain = db.getGrain(newToken.grainId);
         if (!grain) {
           throw new Error("unknown grain ID");
         }
@@ -70,8 +70,7 @@ class PersistentImpl {
         // Fill in denormalizedGrainMetadata and upstreamTitle ourselves.
         userOwner.denormalizedGrainMetadata = db.getDenormalizedGrainInfo(newToken.grainId);
 
-        const grain = db.getGrain(newToken.grainId);
-        if (grain && grain.title !== userOwner.title) {
+        if (grain.title !== userOwner.title) {
           userOwner.upstreamTitle = grain.title;
         }
 

@@ -24,7 +24,7 @@ limitations under the License.
   {{/sandstormTopbarItem}}
 
   <h1>Account</h1>
-  <div class="profile-editor">
+  <div class="account-settings-profile-editor">
 
     <h3 class="title-bar">My Profile</h3>
 
@@ -54,15 +54,10 @@ limitations under the License.
     <div class="credentials-tabs">
 
       {{#unless isLinkingNewCredential}}
-      <ul role="tablist" >
+      <ul>
         {{#each credentials}}
         <li data-credential-id="{{_id}}">
           {{> credentialCard .}}
-          <ul class="verified-email-list">
-            {{#each verifiedEmails}}
-            <li> {{.}} </li>
-            {{/each}}
-          </ul>
           {{> credentialManagementButtons credentialManagementButtonsData}}
         </li>
         {{/each}}
@@ -77,10 +72,10 @@ limitations under the License.
           {{/with}}
           <button class="account-button cancel-link-new-credential">Cancel</button>
         {{else}}
-          <button class="account-button link-new-credential">Link new credential</button>
           <button class="account-button logout-other-sessions" disabled={{logoutOtherSessionsInFlight}}>
             Log out all other sessions
           </button>
+          <button class="account-button link-new-credential">Link new credential</button>
         {{/if}}
       </div>
     </div>

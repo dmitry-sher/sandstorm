@@ -170,18 +170,11 @@ Template.credentialLoginInterstitial.helpers({
   },
 
   currentCredential() {
-    const credential = Meteor.user();
-    SandstormDb.fillInProfileDefaults(credential);
-    SandstormDb.fillInIntrinsicName(credential);
-    SandstormDb.fillInPictureUrl(credential);
-    return credential;
+    return Meteor.user();
   },
 
   nonloginAccounts() {
-    const credentials = LoginCredentialsOfLinkedAccounts.find().fetch().map((credential) => {
-      SandstormDb.fillInPictureUrl(credential);
-      return credential;
-    });
+    const credentials = LoginCredentialsOfLinkedAccounts.find().fetch();
     const grouped = _.groupBy(credentials, "loginAccountId");
     const accountIds = _.keys(grouped);
     const accounts = accountIds.map((accountId) => {
@@ -214,13 +207,13 @@ Template.credentialLoginInterstitial.events({
     Meteor.logout();
   },
 
-  "click button.unlink"(evt) {
-    const instance = Template.instance();
-    const userId = evt.target.getAttribute("data-user-id");
+  "click button.unlink"(evt, instance) {
+    const userId = this.account.accountId;
+    const name = this.credential.intrinsicName;
     const user = Meteor.user();
     const credentialId = user && user._id;
     const loginCredential = LoginCredentialsOfLinkedAccounts.findOne({ loginAccountId: userId });
-    const name = loginCredential.profile.name;
+
     instance.unlinkCredentialState.set({
       confirming: {
         userId,
@@ -260,7 +253,7 @@ Template.credentialManagementButtons.events({
     if (instance.data.isLogin && Meteor.user().loginCredentials.length <= 1) {
       window.alert("You are not allowed to unlink your only login credential.");
     } else if (window.confirm("Are you sure you want to unlink this credential? " +
-                              "You will lose access to grains that were shared to this credential.")) {
+                              "You will lose access to services linked through this credential.")) {
       const credentialId = evt.currentTarget.getAttribute("data-credential-id");
       Meteor.call("unlinkCredential", Meteor.userId(), credentialId, function (err, result) {
         if (err) {
@@ -326,10 +319,7 @@ Template.loginCredentialsOfLinkedAccounts.helpers({
       loginAccountId: {
         $ne: Meteor.userId(),
       },
-    }).fetch().map((credential) => {
-      SandstormDb.fillInPictureUrl(credential);
-      return credential;
-    });
+    }).fetch();
   },
 });
 
@@ -346,9 +336,8 @@ Template.loginCredentialsOfLinkedAccounts.events({
     const userId = evt.currentTarget.getAttribute("data-user-id");
     const credentialId = instance.data._id;
     const loginCredential = LoginCredentialsOfLinkedAccounts.findOne({ loginAccountId: userId });
-    const name = loginCredential.profile.name;
     if (window.confirm("Are you sure you want to unlink this credential from the account of " +
-                       name + " ?")) {
+                       loginCredential.intrinsicName + " ?")) {
       Meteor.call("unlinkCredential", userId, credentialId, (err, result) => {
         if (err) {
           console.log("error: ", err);
@@ -374,17 +363,18 @@ Template.credentialPicker.helpers({
 
 Template.credentialCard.helpers({
   intrinsicName() {
-    const instance = Template.instance();
-    if (!instance.data) {
-      // Still loading. We don't guarantee that credential subscriptions are ready before rendering
-      // the shell, so we have to catch that here instead.
-      return "";
-    } else if (instance.data.privateIntrinsicName) {
-      return instance.data.privateIntrinsicName;
-    } else {
-      return instance.data.profile && instance.data.profile.intrinsicName;
-    }
+    return this.intrinsicName || SandstormDb.getIntrinsicName(this, true);
   },
+
+  serviceName() {
+    return this.serviceName || SandstormDb.getServiceName(this);
+  },
+
+  profile() {
+    const profile = {};
+    SandstormDb.fillInProfileDefaults(this, profile);
+    return profile;
+  }
 });
 
 Template.credentialCardSignInButton.onCreated(function () {
@@ -397,7 +387,7 @@ Template.credentialCardSignInButton.events({
     instance._clicked.set(true);
 
     const data = Template.instance().data;
-    const name = data.credential.profile.service;
+    const name = data.credential.serviceName;
     const result = Accounts.loginServices[name].initiateLogin(data.credential.loginId);
     if ("form" in result) {
       const loginTemplate = Accounts.loginServices[name].loginTemplate;

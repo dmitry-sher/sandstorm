@@ -156,7 +156,7 @@ class SandstormCoreImpl {
 
   getIdentityId(identity) {
     return unwrapFrontendCap(identity, "identity", (accountId) => {
-      const grain = this.db.grains.findOne(this.grainId);
+      const grain = this.db.getGrain(this.grainId);
       if (!grain) {
         throw new Error("Grain not found.");
       }

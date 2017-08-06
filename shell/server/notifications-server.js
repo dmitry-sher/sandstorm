@@ -277,6 +277,6 @@ Meteor.publish("notificationGrains", function (notificationIds) {
   }).filter(x => x);
 
   return [
-    Meteor.users.find({ _id: { $in: accounts } }, { fields: { profile: 1 } }),
+    Meteor.users.find({ _id: { $in: accounts } }, { fields: { type: 1, profile: 1 } }),
   ];
 });

@@ -8,7 +8,7 @@ isLoginCredential: Boolean
     <div class="admin-user-credential-body-cell credential" role="gridcell">
       <ul class="credential-information">
         <li class="credential-provider">
-          <div class="credential-provider-icon" title="{{credential.serviceName}}">
+          <div class="login-provider-icon" title="{{credential.serviceName}}">
             <span class="provider-icon {{credential.serviceName}}">
               {{credential.serviceName}}
             </span>
@@ -66,7 +66,7 @@ isLoginCredential: Boolean
     <div class="admin-user-credential-body-cell credential" role="gridcell">
       <ul class="credential-information">
         <li class="credential-provider">
-          <div class="credential-provider-icon" title="unknown service">
+          <div class="login-provider-icon" title="unknown service">
             <span class="provider-icon">
               (unknown service)
             </span>
@@ -242,23 +242,23 @@ isLoginCredential: Boolean
           Profile picture
         </div>
         <span class="profile-name">
-          {{ credential.profile.name }}
+          {{ account.profile.name }}
         </span>
       </li>
       <li class="profile-handle">
         <div class="profile-handle-decorator" role="presentation" title="Handle">
           @
         </div>
-        <code>{{ credential.profile.handle }}</code>
+        <code>{{ account.profile.handle }}</code>
       </li>
       <li class="profile-pronouns">
         <div class="profile-pronouns-decorator" role="presentation" title="Pronouns">
-          <span class="credential-pronouns-icon">
+          <span class="profile-pronouns-icon">
             Pronouns
           </span>
         </div>
         <span class="profile-pronouns-preference">
-          {{ credential.profile.pronoun }}
+          {{ account.profile.pronoun }}
         </span>
       </li>
     </ul>

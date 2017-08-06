@@ -235,7 +235,7 @@ class SandstormBackend {
 
     this.updateLastActive(grainId, userId);
 
-    const identityId = userId && revealIdentity && db.getOrGenerateIdentityId(userId, grain);
+    const identityId = userId && revealIdentity && this._db.getOrGenerateIdentityId(userId, grain);
 
     cachedSalt = cachedSalt || Random.id(22);
     const sessionId = generateSessionId(grainId, userId, packageSalt, cachedSalt);

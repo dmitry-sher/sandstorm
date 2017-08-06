@@ -35,7 +35,7 @@ if (Meteor.isServer) {
           },
           {
             _id: userId,
-            "loginCredentials.id": credentialId,
+            "nonloginCredentials.id": credentialId,
           },
         ],
       });
@@ -99,6 +99,7 @@ if (Meteor.isServer) {
     return Meteor.users.find(
       { _id: this.userId },
       { fields: {
+        type: 1,
         profile: 1,
         verifiedEmail: 1,
         loginCredentials: 1,
@@ -247,7 +248,7 @@ SandstormDb.getIntrinsicName = function (credential, usePrivate) {
   } else if (services.dev) {
     return services.dev.name;
   } else if (services.demo) {
-    return "demo on " + user.createdAt.toISOString().substring(0, 10);
+    return "demo on " + credential.createdAt.toISOString().substring(0, 10);
   } else if (services.ldap) {
     return services.ldap.username;
   } else if (services.saml) {
@@ -260,10 +261,10 @@ SandstormDb.getIntrinsicName = function (credential, usePrivate) {
 
 SandstormDb.getServiceName = function (credential) {
   const keys = Object.keys(credential.services).filter(k => k !== "resume");
-  if (keys.size !== 1) {
+  if (keys.length !== 1) {
     throw new Error("expected exactly one auth service: " + keys.join(","));
   }
-  return keys[1];
+  return keys[0];
 }
 
 SandstormDb.getLoginId = function (credential) {

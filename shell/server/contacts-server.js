@@ -34,8 +34,7 @@ Meteor.publish("contactProfiles", function (showAll) {
       }
 
       if (user) {
-        SandstormDb.fillInProfileDefaults(user);
-        SandstormDb.fillInIntrinsicName(user);
+        // TODO(now): Used to include intrinsicName
         const filteredUser = _.pick(user, "_id", "profile");
         _this.added("contactProfiles", user._id, filteredUser);
       }

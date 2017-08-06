@@ -280,7 +280,7 @@ Meteor.publish("accountsOfCredential", function (credentialId) {
   check(credentialId, String);
   if (!SandstormDb.ensureSubscriberHasCredential(this, credentialId)) return;
 
-  // We maintain a map from credential IDs to live query handles that track profile changes.
+  // Map from credential ID to `true` for each credential we've published already.
   const loginCredentials = {};
 
   const _this = this;
@@ -299,12 +299,7 @@ Meteor.publish("accountsOfCredential", function (credentialId) {
           _this.added("loginCredentialsOfLinkedAccounts", user._id, filteredUser);
         }
 
-        loginCredentials[credential.id] =
-          Meteor.users.find({ _id: credential.id }, { fields: { profile: 1 } }).observeChanges({
-            changed: function (id, fields) {
-              _this.changed("loginCredentialsOfLinkedAccounts", id, fields);
-            },
-          });
+        loginCredentials[credential.id] = true;
       }
     });
   }
@@ -329,7 +324,6 @@ Meteor.publish("accountsOfCredential", function (credentialId) {
       account.loginCredentials.forEach(function (credential) {
         if (credential.id in loginCredentials) {
           _this.removed("loginCredentialsOfLinkedAccounts", credential.id);
-          loginCredentials[credential.id].stop();
           delete loginCredentials[credential.id];
         }
       });
@@ -340,7 +334,6 @@ Meteor.publish("accountsOfCredential", function (credentialId) {
   this.onStop(function () {
     handle.stop();
     Object.keys(loginCredentials).forEach(function (credentialId) {
-      loginCredentials[credentialId].stop();
       delete loginCredentials[credentialId];
     });
   });

@@ -158,6 +158,7 @@ Meteor.publish("referralInfoPseudo", function () {
   // Case 1. Publish information about not-yet-complete referrals.
   const notCompletedReferralAccountsCursor = Meteor.users.find({
     referredBy: this.userId,
+    referredByComplete: { $exists: false },
     type: "account",
     "profile.name": { $exists: true },
   }, {

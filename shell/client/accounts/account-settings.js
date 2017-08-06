@@ -162,22 +162,19 @@ Template.sandstormAccountSettings.helpers({
   },
 
   credentialManagementButtonsData: function () {
-    if (this.credential) {
-      const user = Meteor.user();
-      const credentialId = this.credential._id;
-      return {
-        _id: credentialId,
-        isLogin: user.loginCredentials && !!_.findWhere(user.loginCredentials, { id: credentialId }),
-        isDemo: this.credential.serviceName === "demo",
-        setActionCompleted: Template.instance()._setActionCompleted,
-      };
-    }
+    const user = Meteor.user();
+    const credentialId = this._id;
+    const actionCompleted = Template.instance()._actionCompleted;
+    return {
+      _id: credentialId,
+      isLogin: user.loginCredentials && !!_.findWhere(user.loginCredentials, { id: credentialId }),
+      isDemo: this.serviceName === "demo",
+      setActionCompleted: function (x) { actionCompleted.set(x); },
+    };
   },
 
-  verifiedEmails: function () {
-    if (this.credential) {
-      return _.pluck(SandstormDb.getVerifiedEmails(this.credential), "email");
-    }
+  verifiedEmailsForCredential: function () {
+    return _.pluck(SandstormDb.getVerifiedEmailsForCredential(this), "email");
   },
 });
 
@@ -357,7 +354,7 @@ const submitProfileForm = function (form, cb) {
     return;
   }
 
-  Meteor.call("updateProfile", newProfile, function (err) {
+  Meteor.call("updateProfile", null, newProfile, function (err) {
     if (err) {
       alert("Error updating profile: " + err.message);
     } else if (cb) {

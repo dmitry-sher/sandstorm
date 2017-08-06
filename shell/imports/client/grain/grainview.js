@@ -121,7 +121,7 @@ class GrainView {
       const id = devApp ? devApp._id : "none";
       if (this._devAppId !== id) {
         if (this._status !== "closed") {
-          this.reset(this.isIncognito());
+          this.reset(!this.isIncognito());
           this.openSession();
         }
       }
@@ -426,12 +426,25 @@ class GrainView {
       return;
     }
 
-    this._userIdentityRevealed.set(true);
-    this._dep.changed();
+    const current = this._userIdentityRevealed.get();
+    if (current !== true) {
+      if (current === false) {
+        this.reset(true);
+        this.openSession();
+      } else {
+        this._userIdentityRevealed.set(true);
+        this._dep.changed();
+      }
+    }
   }
 
   doNotRevealIdentity() {
-    if (this._userIdentityRevealed.get() !== false) {
+    const current = this._userIdentityRevealed.get();
+    if (current) {
+      // For this to work you'd somehow have to find a sharing token to open instead.
+      throw new Error("can't un-reveal identity");
+    }
+    if (current !== false) {
       this._userIdentityRevealed.set(false);
       this._dep.changed();
     }
@@ -469,9 +482,7 @@ class GrainView {
       }
 
       // Otherwise, we should show it.
-      return {
-        showIncognito: !globalDb.getOrganizationDisallowGuests(),
-      };
+      return true;
     } else {
       throw new Error("unrecognized tokenInfo: ", this._tokenInfo);
     }

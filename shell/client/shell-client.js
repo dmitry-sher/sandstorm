@@ -342,17 +342,15 @@ launchAndEnterGrainByActionId = function (actionId, devPackageId, devIndex, opti
 
   const title = "Untitled " + appTitle + " " + nounPhrase;
 
-  const identityId = Accounts.getCurrentIdentityId();
-
   // We need to ask the server to start a new grain, then browse to it.
-  Meteor.call("newGrain", packageId, command, title, identityId, function (error, grainId) {
+  Meteor.call("newGrain", packageId, command, title, null, function (error, grainId) {
     if (error) {
       if (error.error === 402) {
         // Sadly this can occur under LDAP quota management when the backend updates its quota
         // while creating the grain.
         showBillingPrompt("outOfStorage", function () {
           // TODO(someday): figure out the actual reason, instead of hard-coding outOfStorage
-          Meteor.call("newGrain", packageId, command, title, identityId,
+          Meteor.call("newGrain", packageId, command, title, null,
           function (error, grainId) {
             if (error) {
               console.error(error);
@@ -559,9 +557,9 @@ Template.layout.helpers({
     return globalGrains;
   },
 
-  identityUser: function () {
+  credentialUser: function () {
     const user = Meteor.user();
-    return user && user.profile;
+    return user && user.type === "credential";
   },
 
   showAccountButtons: function () {
@@ -749,8 +747,7 @@ restoreBackup = function (file) {
     } else {
       startUpload(file, "/uploadBackup/" + token, function (response) {
         Session.set("uploadStatus", "Unpacking");
-        const identityId = Accounts.getCurrentIdentityId();
-        Meteor.call("restoreGrain", token, identityId, function (err, grainId) {
+        Meteor.call("restoreGrain", token, null, function (err, grainId) {
           if (err) {
             console.log(err);
             Session.set("uploadStatus", undefined);

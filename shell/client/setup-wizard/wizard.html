@@ -187,8 +187,8 @@
           {{#linkTo route="newAdminRoot" class="admin-settings-button"}}Proceed to admin panel{{/linkTo}}
         </p>
       {{else}}
-        {{#if identityUser}}
-          {{> identityLoginInterstitial "" }}
+        {{#if credentialUser}}
+          {{> credentialLoginInterstitial "" }}
         {{else}}
           <p class="center">
             <button class="make-self-admin">Give yourself admin privileges</button>
@@ -508,8 +508,8 @@
     {{/focusingSuccessBox}}
   {{/if}}
 
-{{#if identityUser}}
-  {{> identityLoginInterstitial "" }}
+{{#if credentialUser}}
+  {{> credentialLoginInterstitial "" }}
 {{else}}
   {{#if currentUser}}
     {{#if currentUserFirstLogin}}

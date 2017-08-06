@@ -836,7 +836,7 @@ if (Meteor.isServer) {
       const db = this.connection.sandstormDb;
       return [
         Meteor.users.find({ _id: this.userId },
-            { fields: { signupKey: 1, isAdmin: 1, expires: 1, storageUsage: 1,
+            { fields: { type: 1, signupKey: 1, isAdmin: 1, expires: 1, storageUsage: 1,
                       plan: 1, planBonus: 1, hasCompletedSignup: 1, experiments: 1,
                       referredAccountIds: 1, cachedStorageQuota: 1, suspended: 1, }, }),
         db.collections.plans.find(),
@@ -1530,7 +1530,7 @@ _.extend(SandstormDb.prototype, {
     check(accountId, String);
 
     let result = null;
-    SandstormDb.getUserEmails(Meteor.users.find(accountId)).forEach(email => {
+    SandstormDb.getUserEmails(Meteor.users.findOne(accountId)).forEach(email => {
       if (email.primary) result = email.email;
     });
 
@@ -2873,7 +2873,8 @@ if (Meteor.isServer) {
     } else {
       // Check if the user has already been introduced to this grain.
       const existingToken = this.collections.apiTokens.findOne(
-          { "owner.user.accountId": accountId,
+          { "grainId": grain._id,
+            "owner.user.accountId": accountId,
             "owner.user.identityId": { $exists: true } },
           { fields: { "owner.user.identityId": 1 } });
 

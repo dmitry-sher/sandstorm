@@ -655,11 +655,11 @@ Template.grainView.helpers({
 
 Template.grainView.events({
   "click .reveal-identity-button": function (event, instance) {
-    instance.data.grainView.revealIdentity();
+    this.grainView.revealIdentity();
   },
 
-  "click .incognito-button": function (event) {
-    instance.data.grainView.doNotRevealIdentity();
+  "click .incognito-button": function (event, instance) {
+    this.grainView.doNotRevealIdentity();
   },
 });
 
