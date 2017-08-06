@@ -1552,32 +1552,7 @@ SandstormPermissions.createNewApiToken = function (db, provider, grainId, petnam
     }
   } else if (owner.user) {
     // Determine the user's identity ID (their user ID as seen by the grain).
-    let identityId;
-    if (owner.user.accountId == grain.userId) {
-      identityId = grain.identityId;
-    } else {
-      // Check if the user has already been introduced to this grain.
-      const existingToken = db.collections.apiTokens.findOne(
-          { "owner.user.accountId": owner.user.accountId,
-            "owner.user.identityId": { $exists: true } },
-          { fields: { "owner.user.identityId": 1 } });
-
-      if (existingToken) {
-        // This user already has a token associated with this grain. Reuse the identity ID.
-        // TODO(someday): It's a bit awkward that if the user deletes all their tokens for a grain,
-        //   we forget their identity ID. This both means that if the user regains access, they'll
-        //   have a new identity in the grain, and it means that we have no way of enumerating all
-        //   identity IDs the grain has ever seen (including forgotten ones), which means we can't
-        //   give the grain owner a way to remap these identities when needed. Perhaps ApiTokens
-        //   should never really be deleted, only hidden?
-        identityId = existingToken.owner.user.identityId;
-      } else {
-        // This user is new to this grain. Give them a freshly-generated identity ID.
-        // TODO(cleanup): We only ever pass the first 16 bytes of the identity ID to the app. Maybe
-        //   we can truncate all identity IDs to 16 chars?
-        identityId = Crypto.randomBytes(32).toString("hex");
-      }
-    }
+    const identityId = db.getOrGenerateIdentityId(owner.user.accountId, grain);
 
     const grainInfo = db.getDenormalizedGrainInfo(grainId);
     apiToken.owner = {

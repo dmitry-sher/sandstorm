@@ -121,9 +121,12 @@ const collectionOptions = { defineMutationMethods: Meteor.isClient };
 //   accessRequests: Object containing the following fields; used to limit spam.
 //       count: Number of "request access" emails during sent during the current interval.
 //       resetOn: Date when the count should be reset.
-//   referredBy: ID of the Account that referred this user.
-//   referredByComplete: ID of the Account that referred this Account. If this is set, we
-//                       stop writing new referredBy values for this account.
+//   referredBy: ID of the Account that referred this user. Only present if this user themselves
+//       has not get completed a sharing action.
+//   referredByComplete: ID of the Account that referred this user. `referredBy` becomes
+//       `referredByComplete` when this user performs their first sharing action. (For Alice to get
+//       referral credit, she must share with a new user Bob, and Bob must himself share something
+//       (possibly back to Alice, possibly to a third party).)
 //   referredCompleteDate: The Date at which the completed referral occurred.
 //   referredAccountIds: List of Account IDs that this Account has referred. This is used for
 //                       reliably determining which users's names are safe to display.
@@ -430,8 +433,7 @@ ApiTokens = new Mongo.Collection("apiTokens", collectionOptions);
 //                      names in the list; they should be ignored.
 //       verifiedEmail: An VerifiedEmail capability that is implemented by the frontend.
 //                      An object containing `verifierId`, `tabId`, and `address`.
-//       identity: An Identity capability. The field is the identity ID (which must in turn be
-//                 mapped to an account ID by looking up an ApiToken owned by that identity).
+//       identity: An Identity capability. The field is the account ID.
 //       http: An ApiSession capability pointing to an external HTTP service. Object containing:
 //           url: Base URL of the external service.
 //           auth: Authentication mechanism. Object containing one of:
@@ -2854,6 +2856,57 @@ if (Meteor.isServer) {
 
     this.ready();
   });
+
+  SandstormDb.generateIdentityId = function () {
+    return Crypto.randomBytes(32).toString("hex");
+  };
+
+  SandstormDb.prototype.getOrGenerateIdentityId = function (accountId, grain) {
+    // Determine the identity ID by which the given user is known within the given grain. May
+    // generate a new ID if the user doesn't currently have access to the grain.
+
+    check(accountId, String);
+    check(grain, Match.ObjectIncluding({ _id: String, userId: String, identityId: String }));
+
+    if (accountId == grain.userId) {
+      return grain.identityId;
+    } else {
+      // Check if the user has already been introduced to this grain.
+      const existingToken = this.collections.apiTokens.findOne(
+          { "owner.user.accountId": accountId,
+            "owner.user.identityId": { $exists: true } },
+          { fields: { "owner.user.identityId": 1 } });
+
+      if (existingToken) {
+        // This user already has a token associated with this grain. Reuse the identity ID.
+        // TODO(someday): It's a bit awkward that if the user deletes all their tokens for a grain,
+        //   we forget their identity ID. This both means that if the user regains access, they'll
+        //   have a new identity in the grain, and it means that we have no way of enumerating all
+        //   identity IDs the grain has ever seen (including forgotten ones), which means we can't
+        //   give the grain owner a way to remap these identities when needed. Perhaps ApiTokens
+        //   should never really be deleted, only hidden?
+        return existingToken.owner.user.identityId;
+      }
+
+      if (!grain.private) {
+        // This grain operates on the old sharing model, where simply knowing the grain ID is
+        // sufficient to open it. We need to assign identity IDs in a consistent way without having
+        // stored them anywhere. Identity IDs used to be based on credential IDs, which at some
+        // point were used to fill in identicon keys in profiles... so use the identicon.
+        const user = Meteor.users.findOne(accountId);
+        if (user && user.profile && user.profile.identicon) {
+          return user.profile.identicon;
+        } else {
+          throw new Meteor.Error(500, "Don't know how to identity user under old sharing model.");
+        }
+      }
+
+      // This user is new to this grain. Give them a freshly-generated identity ID.
+      // TODO(cleanup): We only ever pass the first 16 bytes of the identity ID to the app. Maybe
+      //   we can truncate all identity IDs to 16 chars?
+      return SandstormDb.generateIdentityId();
+    }
+  };
 }
 
 if (Meteor.isServer) {

@@ -156,8 +156,8 @@ Meteor.methods({
         appId: grainInfo.appId,
         appVersion: appVersion,
         userId: this.userId,
-        // TODO(soon): Save identity ID mapping to backup metadata and use it on restore.
-        identityId: Crypto.randomBytes(32).toString("hex"),
+        // TODO(now): Save identity ID mapping to backup metadata and use it on restore.
+        identityId: SandstormDb.generateIdentityId(),
         title: grainInfo.title,
         private: true,
         size: 0,

@@ -105,7 +105,7 @@ computeStats = function (since) {
           grainId: { $in: grainIds },
         },
       },
-      { $group: { _id: "$owner.user.identityId" } },
+      { $group: { _id: "$owner.user.accountId" } },
       {
         $group: {
           _id: "count",

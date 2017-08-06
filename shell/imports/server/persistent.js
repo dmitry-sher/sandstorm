@@ -53,12 +53,19 @@ class PersistentImpl {
       const newToken = _.clone(this[privateTemplate]);
       newToken.owner = params.sealFor;
       if (newToken.owner.user) {
-        if (!newToken.identityId) {
+        if (!newToken.accountId || !newToken.grainId) {
           throw new Error("can't save non-UiView with user as owner");
         }
 
-        // Only "identityId" and "title" are allowed to be passed to save().
-        const userOwner = _.pick(newToken.owner.user, "identityId", "title");
+        // Only "accountId" and "title" are allowed to be passed to save().
+        const userOwner = _.pick(newToken.owner.user, "accountId", "title");
+
+        const grain = db.collections.grains.findOne(newToken.grainId);
+        if (!grain) {
+          throw new Error("unknown grain ID");
+        }
+
+        userOwner.identityId = db.getOrGenerateIdentityId(userOwner.accountId, grain);
 
         // Fill in denormalizedGrainMetadata and upstreamTitle ourselves.
         userOwner.denormalizedGrainMetadata = db.getDenormalizedGrainInfo(newToken.grainId);
@@ -208,8 +215,8 @@ function checkRequirements(db, requirements) {
       const viewInfo = db.collections.grains.findOne(
           p.grainId, { fields: { cachedViewInfo: 1 } }).cachedViewInfo;
       let vertex;
-      if (p.identityId) {
-        vertex = { grain: { _id: p.grainId, identityId: p.identityId } };
+      if (p.accountId) {
+        vertex = { grain: { _id: p.grainId, accountId: p.accountId } };
       } else {
         vertex = { token: { _id: p.tokenId, grainId: p.grainId } };
       }

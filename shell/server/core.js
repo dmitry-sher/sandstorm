@@ -155,7 +155,12 @@ class SandstormCoreImpl {
   }
 
   getIdentityId(identity) {
-    return unwrapFrontendCap(identity, "identity", (identityId) => {
+    return unwrapFrontendCap(identity, "identity", (accountId) => {
+      const grain = this.db.grains.findOne(this.grainId);
+      if (!grain) {
+        throw new Error("Grain not found.");
+      }
+      const identityId = this.db.getOrGenerateIdentityId(accountId, grain);
       return { id: new Buffer(identityId, "hex") };
     });
   }
