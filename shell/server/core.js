@@ -130,7 +130,8 @@ class SandstormCoreImpl {
 
   backgroundActivity(event) {
     return inMeteor(() => {
-      logActivity(this.grainId, null, event);
+      // we should pass 'anonymous' as a user id
+      logActivity(this.grainId, 'anonymous', event);
     });
   }
 
